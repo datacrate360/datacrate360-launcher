@@ -493,9 +493,15 @@ mod linux_tests {
             bin
         };
         let sound = write("omega", "#!/bin/sh\necho 'Omega 0.5.0'\n");
-        assert_eq!(linux::binary_version(&sound, SuiteApp::by_id("omega").unwrap()).unwrap().to_string(), "0.5.0");
+        assert_eq!(
+            linux::binary_version(&sound, datacrate360_launcher_core::catalog::fixtures::by_id("omega").unwrap()).unwrap().to_string(),
+            "0.5.0"
+        );
         let pdf = write("epsilon", "#!/bin/sh\necho 'epsilonold 0.2.1'\n");
-        assert_eq!(linux::binary_version(&pdf, SuiteApp::by_id("epsilon").unwrap()).unwrap().to_string(), "0.2.1");
+        assert_eq!(
+            linux::binary_version(&pdf, datacrate360_launcher_core::catalog::fixtures::by_id("epsilon").unwrap()).unwrap().to_string(),
+            "0.2.1"
+        );
     }
 }
 
