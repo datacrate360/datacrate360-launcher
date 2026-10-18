@@ -103,7 +103,7 @@ pub mod fixtures {
 
     pub const DETAILS: [AppDetails; 4] = [
         AppDetails {
-            id: "omni-agent",
+            id: "countercheck",
             headline: "A stand-in page with four pictures.",
             about: "The first paragraph of a stand-in page.\n\nThe second paragraph of a stand-in page.",
             features: &[
@@ -151,7 +151,7 @@ mod tests {
     use super::*;
 
     const PAGE: AppDetails = AppDetails {
-        id: "omni-agent",
+        id: "countercheck",
         headline: "Headline.",
         about: "One.\n\nTwo.",
         features: &[feature("A", "B")],

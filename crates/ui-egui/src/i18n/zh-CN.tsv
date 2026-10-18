@@ -1,7 +1,7 @@
 # Simplified Chinese (zh-CN) catalog for DataCrate360 Launcher.
 # Format: context<TAB>English source<TAB>translation.
 # Original translations from the English UI. Product and app names (DataCrate360 Launcher and its
-# "Launcher" tag, DataCrate360 tools, omni-agent…) and third-party names stay unchanged.
+# "Launcher" tag, DataCrate360 tools, countercheck…) and third-party names stay unchanged.
 # Shown with the system's Chinese font (PingFang, Microsoft YaHei, Noto Sans CJK…): see cjk_font.rs.
 # Chinese has one plural form. Placeholders and trailing ellipses are preserved.
 
@@ -226,7 +226,7 @@ filter	Installed	已安装
 	DataCrate360 on GitHub	DataCrate360 的 GitHub 主页
 @plural	DataCrate360 Launcher · {n} update available|DataCrate360 Launcher · {n} updates available	DataCrate360 Launcher · 有 {n} 个可用更新
 @plural	{n} app|{n} apps	{n} 个应用
-omni-agent	Proof that AI work really happened	证明 AI 工作确实发生过
+countercheck	Proof that AI work really happened	证明 AI 工作确实发生过
 
 	Show in Files	在文件管理器中显示
 	Loading DataCrate360 Launcher…	正在加载 DataCrate360 Launcher…

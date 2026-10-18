@@ -142,7 +142,7 @@ fn release(id: &str, v: &str, at: i64) -> Release {
 fn events() -> Vec<Event> {
     let mut ev = Vec::new();
     let versions = [
-        ("omni-agent", "0.5.0"),
+        ("countercheck", "0.5.0"),
         ("beta", "0.7.0"),
         ("gamma", "0.4.0"),
         ("delta", "0.4.0"),
@@ -162,7 +162,7 @@ fn events() -> Vec<Event> {
         });
     }
     ev.push(Event::Latest { app: "omega".into(), latest: LatestRelease::None, from: Origin::FeedApi });
-    let installed = [("omni-agent", "0.4.1"), ("delta", "0.4.0"), ("theta", "0.3.0"), ("zeta", "0.5.0")];
+    let installed = [("countercheck", "0.4.1"), ("delta", "0.4.0"), ("theta", "0.3.0"), ("zeta", "0.5.0")];
     for app in &CATALOG {
         let inst = installed.iter().find(|(id, _)| *id == app.id).map(|(_, v)| Installed {
             version: version::parse(v),
@@ -291,8 +291,8 @@ fn folder_harness(picked: Rc<RefCell<Option<String>>>) -> (Harness<'static, Opti
     let sent = Rc::new(RefCell::new(Vec::new()));
     let mut backend = Some(Fake {
         events: vec![
-            Event::Latest { app: "omni-agent".into(), latest: LatestRelease::Found(release("omni-agent", "0.6.0", NOW)), from: Origin::GitHub },
-            Event::Detected { app: "omni-agent".into(), installed: None },
+            Event::Latest { app: "countercheck".into(), latest: LatestRelease::Found(release("countercheck", "0.6.0", NOW)), from: Origin::GitHub },
+            Event::Detected { app: "countercheck".into(), installed: None },
         ],
         sent: sent.clone(),
         manage: true,
@@ -362,8 +362,8 @@ fn a_fresh_install_confirms_the_folder_and_configures_before_installing() {
     let commands = install_commands(&sent);
     assert!(matches!(commands.first(), Some(Command::Configure(options))
         if options.install_locations.root.as_deref() == Some("/Volumes/tools")
-        && options.install_locations.folder("omni-agent") == Some("/Volumes/Typed Photo")));
-    assert_eq!(commands.get(1), Some(&Command::Install { app: "omni-agent".into() }));
+        && options.install_locations.folder("countercheck") == Some("/Volumes/Typed Photo")));
+    assert_eq!(commands.get(1), Some(&Command::Install { app: "countercheck".into() }));
 }
 
 #[test]
@@ -372,7 +372,7 @@ fn use_default_removes_an_app_override_and_settings_can_reset_the_root() {
     let (mut h, sent) = folder_harness(picked);
     h.run_steps(8);
     h.state_mut().as_mut().unwrap().settings.install_locations.root = Some("/Volumes/tools".into());
-    h.state_mut().as_mut().unwrap().settings.install_locations.per_app.insert("omni-agent".into(), "/Volumes/Old Photo".into());
+    h.state_mut().as_mut().unwrap().settings.install_locations.per_app.insert("countercheck".into(), "/Volumes/Old Photo".into());
     h.run_steps(2);
     h.get_by_label("Install").click();
     h.run_steps(3);
@@ -383,7 +383,7 @@ fn use_default_removes_an_app_override_and_settings_can_reset_the_root() {
     h.run_steps(2);
     assert!(h.state().as_ref().unwrap().settings.install_locations.per_app.is_empty());
     assert!(
-        matches!(install_commands(&sent).first(), Some(Command::Configure(options)) if options.install_locations.folder("omni-agent") == Some("/Volumes/tools"))
+        matches!(install_commands(&sent).first(), Some(Command::Configure(options)) if options.install_locations.folder("countercheck") == Some("/Volumes/tools"))
     );
     h.get_by_label("Settings").click();
     h.run_steps(3);
@@ -429,9 +429,9 @@ fn install_locations_survive_settings_save_and_older_settings_use_system_default
     assert_eq!(old.install_locations, Default::default());
     let mut settings = old;
     settings.install_locations.root = Some("/Volumes/tools".into());
-    settings.install_locations.per_app.insert("omni-agent".into(), "/Volumes/Photo".into());
+    settings.install_locations.per_app.insert("countercheck".into(), "/Volumes/Photo".into());
     let restored: Settings = serde_json::from_str(&serde_json::to_string(&settings).unwrap()).unwrap();
-    assert_eq!(restored.install_locations.folder("omni-agent"), Some("/Volumes/Photo"));
+    assert_eq!(restored.install_locations.folder("countercheck"), Some("/Volumes/Photo"));
     assert_eq!(restored.install_locations.folder("gamma"), Some("/Volumes/tools"));
 }
 
@@ -484,7 +484,7 @@ fn grid_shows_every_status_and_installs_on_click() {
     h.run_steps(2);
     let installs: Vec<_> = sent.borrow().iter().filter_map(|c| if let Command::Install { app } = c { Some(app.clone()) } else { None }).collect();
     assert_eq!(installs.len(), 2, "{installs:?}");
-    assert!(installs.contains(&"omni-agent".to_string()) && installs.contains(&"zeta".to_string()));
+    assert!(installs.contains(&"countercheck".to_string()) && installs.contains(&"zeta".to_string()));
 }
 
 #[test]
@@ -592,7 +592,7 @@ fn a_kept_update_names_its_version_and_an_up_to_date_app_is_not_downloaded_again
 fn an_install_waiting_for_another_says_so_and_can_be_cancelled() {
     let mut events = events();
     // Two updates reached the system's installer together: one runs, the other waits its turn.
-    events.push(Event::Progress { app: "omni-agent".into(), phase: JobPhase::Installing });
+    events.push(Event::Progress { app: "countercheck".into(), phase: JobPhase::Installing });
     events.push(Event::Progress { app: "zeta".into(), phase: JobPhase::Waiting });
     let (mut h, sent) = harness_with(events, ViewMode::Grid, egui::Theme::Dark, true, 1.0);
     h.run_steps(6);
@@ -649,7 +649,7 @@ fn table_view_and_light_theme() {
     snapshot(&mut h, "table-light");
     h.get_by_label("Update to 0.5.0").click();
     h.run_steps(2);
-    assert!(sent.borrow().contains(&Command::Install { app: "omni-agent".into() }));
+    assert!(sent.borrow().contains(&Command::Install { app: "countercheck".into() }));
     h.get_all_by_label("Open").next().unwrap().click();
     h.run_steps(2);
     assert!(sent.borrow().iter().any(|c| matches!(c, Command::Launch { .. })));
@@ -659,26 +659,26 @@ fn table_view_and_light_theme() {
 fn hiding_an_app_removes_it_until_it_is_unhidden() {
     let (mut h, _) = harness(ViewMode::Table, egui::Theme::Dark, true);
     h.run_steps(6);
-    // omni-agent has an update, so hiding it also drops the Updates count.
+    // countercheck has an update, so hiding it also drops the Updates count.
     h.get_by_label_contains("Updates 2");
-    let row = h.get_all_by_label("omni-agent").next().unwrap().rect().center().y;
+    let row = h.get_all_by_label("Countercheck").next().unwrap().rect().center().y;
     h.get_all_by_label("…").find(|n| (n.rect().center().y - row).abs() < 25.0).unwrap().click();
     h.run_steps(3);
     h.get_by_label("Hide App").click();
     h.run_steps(4);
-    assert!(h.query_by_label("omni-agent").is_none());
-    assert!(h.state().as_ref().unwrap().settings.hidden.contains("omni-agent"));
+    assert!(h.query_by_label("Countercheck").is_none());
+    assert!(h.state().as_ref().unwrap().settings.hidden.contains("countercheck"));
     h.get_by_label_contains("Updates 1");
     h.get_by_label_contains("Hidden Apps").click();
     h.run_steps(4);
-    h.get_by_label("omni-agent");
+    h.get_by_label("Countercheck");
     assert!(h.query_by_label("Theta").is_none());
-    let row = h.get_all_by_label("omni-agent").next().unwrap().rect().center().y;
+    let row = h.get_all_by_label("Countercheck").next().unwrap().rect().center().y;
     h.get_all_by_label("…").find(|n| (n.rect().center().y - row).abs() < 25.0).unwrap().click();
     h.run_steps(3);
     h.get_by_label("Unhide App").click();
     h.run_steps(4);
-    h.get_by_label("omni-agent");
+    h.get_by_label("Countercheck");
     assert!(h.query_by_label_contains("Hidden Apps").is_none());
     assert!(h.state().as_ref().unwrap().settings.hidden.is_empty());
     assert_eq!(h.state().as_ref().unwrap().settings.filter, datacrate360_launcher_ui_egui::settings::Filter::All);
@@ -695,7 +695,7 @@ fn switching_views_and_filters() {
     h.run_steps(4);
     snapshot(&mut h, "table-updates-dark");
     assert!(h.query_by_label("Theta").is_none());
-    h.get_by_label("omni-agent");
+    h.get_by_label("Countercheck");
 }
 
 /// How far the middle of these lines of text is below the middle of the app icon beside them, in points.
@@ -717,12 +717,12 @@ fn name_and_tagline_are_centred_on_the_icon() {
         let (mut h, _) = harness_at(ViewMode::Grid, egui::Theme::Dark, true, scale);
         h.run_steps(8);
         snapshot(&mut h, &format!("grid-dark{suffix}"));
-        let off = below_icon_centre(&h, &["omni-agent", "Proof that AI work really happened"]);
+        let off = below_icon_centre(&h, &["Countercheck", "Proof that AI work really happened"]);
         assert!(off.abs() < 0.25, "grid at {scale}x: {off}");
         let (mut h, _) = harness_at(ViewMode::Table, egui::Theme::Light, true, scale);
         h.run_steps(8);
         snapshot(&mut h, &format!("table-light{suffix}"));
-        let off = below_icon_centre(&h, &["omni-agent", "Proof that AI work really happened"]);
+        let off = below_icon_centre(&h, &["Countercheck", "Proof that AI work really happened"]);
         assert!(off.abs() < 0.25, "table at {scale}x: {off}");
     }
 }
@@ -753,12 +753,12 @@ fn every_table_column_sorts_both_ways() {
     h.get_by_label("Installed").click();
     h.run_steps(3);
     let o = order(&h);
-    assert_eq!(&o[..4], ["Zeta", "omni-agent", "Delta", "Theta"], "{o:?}");
+    assert_eq!(&o[..4], ["Zeta", "Countercheck", "Delta", "Theta"], "{o:?}");
     // Reversed: lowest first, the empty cells still last.
     h.get_by_label("Installed").click();
     h.run_steps(3);
     let o = order(&h);
-    assert_eq!(&o[..4], ["Theta", "Delta", "omni-agent", "Zeta"], "{o:?}");
+    assert_eq!(&o[..4], ["Theta", "Delta", "Countercheck", "Zeta"], "{o:?}");
     // Latest: highest version first, Omega (no release) last.
     h.get_by_label("Latest").click();
     h.run_steps(3);
@@ -771,7 +771,7 @@ fn every_table_column_sorts_both_ways() {
     h.get_by_label("App").click();
     h.run_steps(3);
     let o = order(&h);
-    assert_eq!(o.first().map(String::as_str), Some("omni-agent"), "{o:?}"); // byte order: lower case after upper
+    assert_eq!(o.first().map(String::as_str), Some("Zeta"), "{o:?}");
 }
 
 #[test]
@@ -797,7 +797,7 @@ fn the_uninstall_prompt_keeps_its_own_size_after_a_taller_dialog() {
     h.run_steps(4);
     h.get_by_label("Done").click();
     h.run_steps(3);
-    // omni-agent is installed, so its … menu offers Uninstall.
+    // countercheck is installed, so its … menu offers Uninstall.
     h.get_all_by_label("…").next().unwrap().click();
     h.run_steps(3);
     h.get_by_label("Uninstall…").click();
@@ -870,7 +870,7 @@ fn links_open_the_right_pages() {
     // The footer's DataCrate360 links and each card's own pages.
     let github = all_opened(&mut h, "GitHub");
     assert!(github.contains(&"https://github.com/datacrate360".to_string()), "{github:?}");
-    assert!(github.contains(&"https://github.com/datacrate360/omni-agent".to_string()), "{github:?}");
+    assert!(github.contains(&"https://github.com/datacrate360/countercheck".to_string()), "{github:?}");
     let sites = all_opened(&mut h, "Website");
     assert!(sites.contains(&"https://datacrate360.com".to_string()), "{sites:?}");
     // No social icons: there are no accounts to link to.
@@ -880,7 +880,7 @@ fn links_open_the_right_pages() {
     // The … menu.
     h.get_all_by_label("…").next().unwrap().click();
     h.run_steps(3);
-    assert_eq!(click_opens(&mut h, "All releases").as_deref(), Some("https://github.com/datacrate360/omni-agent/releases"));
+    assert_eq!(click_opens(&mut h, "All releases").as_deref(), Some("https://github.com/datacrate360/countercheck/releases"));
 }
 
 #[test]
@@ -1101,7 +1101,7 @@ fn automatic_updates_queue_installs_for_outdated_apps_and_launcher() {
     );
     h.run_steps(4);
     let commands = sent.borrow().clone();
-    assert!(commands.contains(&Command::Install { app: "omni-agent".into() }), "outdated omni-agent should be queued for install: {commands:?}");
+    assert!(commands.contains(&Command::Install { app: "countercheck".into() }), "outdated countercheck should be queued for install: {commands:?}");
     assert!(commands.contains(&Command::Install { app: "zeta".into() }), "outdated zeta should be queued for install: {commands:?}");
     assert!(commands.contains(&Command::UpdateLauncher), "launcher update should be queued: {commands:?}");
 }
@@ -1133,7 +1133,10 @@ fn automatic_updates_are_disabled_by_default() {
     );
     h.run_steps(4);
     let commands = sent.borrow().clone();
-    assert!(!commands.contains(&Command::Install { app: "omni-agent".into() }), "omni-agent should not be auto-installed when auto_update is false");
+    assert!(
+        !commands.contains(&Command::Install { app: "countercheck".into() }),
+        "countercheck should not be auto-installed when auto_update is false"
+    );
     assert!(!commands.contains(&Command::UpdateLauncher), "launcher should not be auto-updated when auto_update is false");
 }
 
@@ -1224,7 +1227,7 @@ fn clicking_a_card_opens_its_details_drawer() {
     // Every app has a page: a card of each generation opens one.
     h.get_by_label("Beta details");
     h.get_by_label("Theta details");
-    h.get_by_label("omni-agent details").click();
+    h.get_by_label("Countercheck details").click();
     h.run_steps(10);
     snapshot(&mut h, "details-dark");
     h.get_by_label_contains("A stand-in page with four pictures");
@@ -1250,7 +1253,7 @@ fn clicking_a_card_opens_its_details_drawer() {
 fn details_drawer_in_the_light_theme() {
     let (mut h, _sent) = harness(ViewMode::Grid, egui::Theme::Light, true);
     h.run_steps(8);
-    h.get_by_label("omni-agent details").click();
+    h.get_by_label("Countercheck details").click();
     h.run_steps(10);
     snapshot(&mut h, "details-light");
     h.get_by_label_contains("A stand-in page with four pictures");
@@ -1264,17 +1267,17 @@ fn fetches(sent: &Rc<RefCell<Vec<Command>>>, app: &str) -> usize {
 fn opening_a_page_asks_for_its_pictures_once_and_only_while_it_lacks_some() {
     let (mut h, sent) = harness(ViewMode::Grid, egui::Theme::Dark, true);
     h.run_steps(8);
-    assert_eq!(fetches(&sent, "omni-agent"), 0, "nothing is fetched before a page is opened");
-    h.get_by_label("omni-agent details").click();
+    assert_eq!(fetches(&sent, "countercheck"), 0, "nothing is fetched before a page is opened");
+    h.get_by_label("Countercheck details").click();
     h.run_steps(10);
-    assert_eq!(fetches(&sent, "omni-agent"), 1);
+    assert_eq!(fetches(&sent, "countercheck"), 1);
     h.get_by_label("Enlarge picture");
     // Closed and opened again: the pictures are in hand, so nothing is asked.
     h.key_press(egui::Key::Escape);
     h.run_steps(10);
-    h.get_by_label("omni-agent details").click();
+    h.get_by_label("Countercheck details").click();
     h.run_steps(10);
-    assert_eq!(fetches(&sent, "omni-agent"), 1);
+    assert_eq!(fetches(&sent, "countercheck"), 1);
     h.get_by_label("Enlarge picture");
     // Another page asks for its own, and a page without pictures asks for nothing.
     h.key_press(egui::Key::Escape);
@@ -1294,7 +1297,7 @@ fn a_frame_stands_in_for_the_pictures_until_they_arrive() {
     let pictures = Rc::new(Cell::new(Pictures::Silent));
     let (mut h, sent) = harness_pictures(events(), ViewMode::Grid, egui::Theme::Dark, true, 1.0, pictures.clone());
     h.run_steps(8);
-    h.get_by_label("omni-agent details").click();
+    h.get_by_label("Countercheck details").click();
     h.run_steps(10);
     snapshot(&mut h, "details-loading-dark");
     h.get_by_label("Loading pictures…");
@@ -1305,7 +1308,7 @@ fn a_frame_stands_in_for_the_pictures_until_they_arrive() {
     h.run_steps(3);
     h.get_by_label_contains("The second picture · 2/4");
     // Asking again meanwhile is not done: the answer is on its way.
-    assert_eq!(fetches(&sent, "omni-agent"), 1);
+    assert_eq!(fetches(&sent, "countercheck"), 1);
     pictures.set(Pictures::Online);
     h.run_steps(6);
     assert!(h.query_by_label("Loading pictures…").is_none());
@@ -1317,7 +1320,7 @@ fn offline_the_frame_says_so_and_opening_the_page_again_retries() {
     let pictures = Rc::new(Cell::new(Pictures::Offline));
     let (mut h, sent) = harness_pictures(events(), ViewMode::Grid, egui::Theme::Light, true, 1.0, pictures.clone());
     h.run_steps(8);
-    h.get_by_label("omni-agent details").click();
+    h.get_by_label("Countercheck details").click();
     h.run_steps(10);
     snapshot(&mut h, "details-offline-light");
     h.get_by_label("Pictures couldn't be loaded. Reopen this page to try again.");
@@ -1328,9 +1331,9 @@ fn offline_the_frame_says_so_and_opening_the_page_again_retries() {
     pictures.set(Pictures::Online);
     h.key_press(egui::Key::Escape);
     h.run_steps(10);
-    h.get_by_label("omni-agent details").click();
+    h.get_by_label("Countercheck details").click();
     h.run_steps(10);
-    assert_eq!(fetches(&sent, "omni-agent"), 2);
+    assert_eq!(fetches(&sent, "countercheck"), 2);
     h.get_by_label("Enlarge picture");
     assert!(h.query_by_label("Pictures couldn't be loaded. Reopen this page to try again.").is_none());
 }
@@ -1340,7 +1343,7 @@ fn the_enlarged_view_shows_a_frame_for_a_picture_still_missing() {
     let pictures = Rc::new(Cell::new(Pictures::SecondFails));
     let (mut h, _sent) = harness_pictures(events(), ViewMode::Grid, egui::Theme::Dark, true, 1.0, pictures);
     h.run_steps(8);
-    h.get_by_label("omni-agent details").click();
+    h.get_by_label("Countercheck details").click();
     h.run_steps(10);
     h.get_by_label("Enlarge picture").click();
     h.run_steps(3);
@@ -1373,7 +1376,7 @@ fn a_page_without_pictures_has_no_gallery() {
 fn the_lead_picture_can_be_enlarged() {
     let (mut h, _sent) = harness(ViewMode::Grid, egui::Theme::Dark, true);
     h.run_steps(8);
-    h.get_by_label("omni-agent details").click();
+    h.get_by_label("Countercheck details").click();
     h.run_steps(10);
     // The drawer has one "Close (Esc)"; the enlarged view adds its own.
     assert_eq!(h.query_all_by_label("Close (Esc)").count(), 1);
@@ -1447,7 +1450,7 @@ fn every_page_opens_and_pages_through_its_pictures() {
 fn the_drawer_and_the_enlarged_picture_survive_any_window_size() {
     let (mut h, _sent) = harness(ViewMode::Grid, egui::Theme::Dark, true);
     h.run_steps(8);
-    h.get_by_label("omni-agent details").click();
+    h.get_by_label("Countercheck details").click();
     h.run_steps(10);
     let sizes = [(1180.0, 900.0), (720.0, 500.0), (480.0, 320.0), (320.0, 200.0), (120.0, 90.0), (40.0, 30.0), (4000.0, 2400.0)];
     for zoom in [false, true] {
@@ -1693,22 +1696,22 @@ fn with_animations_on_hovering_a_card_animates() {
 
 #[test]
 fn an_occupied_folder_asks_before_replacing_it() {
-    let path = "/Volumes/tools/omni-agent.app";
+    let path = "/Volumes/tools/countercheck.app";
     let mut ev = events();
-    ev.push(Event::Occupied { app: "omni-agent".into(), path: path.into() });
-    ev.push(Event::JobFinished { app: "omni-agent".into(), result: Err(format!("{path} already exists")) });
+    ev.push(Event::Occupied { app: "countercheck".into(), path: path.into() });
+    ev.push(Event::JobFinished { app: "countercheck".into(), result: Err(format!("{path} already exists")) });
     let (mut h, sent) = harness_with(ev, ViewMode::Grid, egui::Theme::Dark, true, 1.0);
     h.run_steps(6);
-    h.get_by_label(&format!("{path} already exists. Installing omni-agent will overwrite it."));
+    h.get_by_label(&format!("{path} already exists. Installing Countercheck will overwrite it."));
     assert!(h.query_by_label(&format!("{path} already exists")).is_none());
     sent.borrow_mut().clear();
     h.get_by_label("Replace").click();
     h.run_steps(2);
-    assert_eq!(*sent.borrow(), [Command::Replace { app: "omni-agent".into() }]);
+    assert_eq!(*sent.borrow(), [Command::Replace { app: "countercheck".into() }]);
     assert!(h.query_by_label("Replace").is_none());
 }
 
-/// The real catalog: omni-agent has no release yet, which reads as "Coming soon" with nothing to
+/// The real catalog: countercheck has no release yet, which reads as "Coming soon" with nothing to
 /// install, and nothing else from the fixtures shows.
 #[test]
 fn the_real_catalog_shows_an_unreleased_tool_as_coming_soon() {
@@ -1716,8 +1719,8 @@ fn the_real_catalog_shows_an_unreleased_tool_as_coming_soon() {
     let sent = Rc::new(RefCell::new(Vec::new()));
     let mut backend = Some(Fake {
         events: vec![
-            Event::Latest { app: "omni-agent".into(), latest: LatestRelease::None, from: Origin::GitHub },
-            Event::Detected { app: "omni-agent".into(), installed: None },
+            Event::Latest { app: "countercheck".into(), latest: LatestRelease::None, from: Origin::GitHub },
+            Event::Detected { app: "countercheck".into(), installed: None },
             Event::CheckFinished { at: NOW - 60, source: Source::GitHubApi, rate_limited_until: None },
         ],
         sent: sent.clone(),
@@ -1740,7 +1743,7 @@ fn the_real_catalog_shows_an_unreleased_tool_as_coming_soon() {
     );
     h.run_steps(8);
     snapshot(&mut h, "real-catalog-light");
-    h.get_by_label("omni-agent");
+    h.get_by_label("Countercheck");
     h.get_by_label("Proof that AI work really happened");
     assert!(h.query_all_by_label("Coming soon").count() >= 1);
     assert!(h.query_by_label("Install").is_none());

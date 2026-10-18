@@ -113,7 +113,7 @@ pub struct Settings {
     pub notified: BTreeMap<String, String>,
     /// Unix seconds of the last finished check.
     pub last_check: Option<i64>,
-    /// Catalog ids of apps hidden from the main lists (`omni-agent`, …).
+    /// Catalog ids of apps hidden from the main lists (`countercheck`, …).
     pub hidden: std::collections::BTreeSet<String>,
 }
 

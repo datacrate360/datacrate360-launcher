@@ -286,7 +286,7 @@ fn german_counts_dates_and_messages_work() {
     assert_eq!(trn(Lang::DE, 1, "{n} day ago", "{n} days ago"), "vor 1 Tag");
     assert_eq!(super::tr_ctx(Lang::DE, "month", "Mar"), "März");
     assert_eq!(tr(Lang::DE, "{month} {day}, {year}"), "{day}. {month} {year}");
-    assert_eq!(message(Lang::DE, "omni-agent updated to 0.5.0"), "omni-agent auf 0.5.0 aktualisiert");
+    assert_eq!(message(Lang::DE, "countercheck updated to 0.5.0"), "countercheck auf 0.5.0 aktualisiert");
     assert_eq!(tr(Lang::DE, "Untranslated diagnostic"), "Untranslated diagnostic");
 }
 
@@ -304,7 +304,7 @@ fn hungarian_locales_and_plurals_work() {
     assert_eq!(trn(Lang::HU, 1, "{n} day ago", "{n} days ago"), "1 napja");
     assert_eq!(super::tr_ctx(Lang::HU, "month", "Mar"), "márc.");
     assert_eq!(tr(Lang::HU, "{month} {day}, {year}"), "{year}. {month} {day}.");
-    assert_eq!(message(Lang::HU, "omni-agent updated to 0.5.0"), "omni-agent frissítve. Verzió: 0.5.0");
+    assert_eq!(message(Lang::HU, "countercheck updated to 0.5.0"), "countercheck frissítve. Verzió: 0.5.0");
     assert_eq!(tr(Lang::HU, "Untranslated diagnostic"), "Untranslated diagnostic");
 }
 
@@ -332,7 +332,7 @@ fn spanish_locales_and_plurals_work() {
     assert_eq!(trn(Lang::ES, 1, "{n} app", "{n} apps"), "1 aplicación");
     assert_eq!(trn(Lang::ES, 3, "{n} day ago", "{n} days ago"), "hace 3 días");
     assert_eq!(tr(Lang::ES, "{month} {day}, {year}"), "{day} {month} {year}");
-    assert_eq!(message(Lang::ES, "omni-agent updated to 0.5.0"), "omni-agent actualizada a 0.5.0");
+    assert_eq!(message(Lang::ES, "countercheck updated to 0.5.0"), "countercheck actualizada a 0.5.0");
 }
 
 #[test]
@@ -363,7 +363,7 @@ fn chinese_counts_and_english_fallback_work() {
     }
     assert_eq!(trn(Lang::ZH_CN, 2, "{n} unknown item", "{n} unknown items"), "2 unknown items");
     assert_eq!(tr(Lang::ZH_CN, "Untranslated diagnostic"), "Untranslated diagnostic");
-    assert_eq!(message(Lang::ZH_CN, "omni-agent updated to 0.5.0"), "omni-agent 已更新至 0.5.0");
+    assert_eq!(message(Lang::ZH_CN, "countercheck updated to 0.5.0"), "countercheck 已更新至 0.5.0");
 }
 
 #[test]
@@ -381,7 +381,7 @@ fn japanese_locales_and_counts_work() {
     assert_eq!(tr(Lang::JA, "Untranslated diagnostic"), "Untranslated diagnostic");
     assert_eq!(super::tr_ctx(Lang::JA, "month", "Mar"), "3月");
     assert_eq!(tr(Lang::JA, "{month} {day}, {year}"), "{year}年{month}{day}日");
-    assert_eq!(message(Lang::JA, "omni-agent updated to 0.5.0"), "omni-agent を 0.5.0 に更新しました");
+    assert_eq!(message(Lang::JA, "countercheck updated to 0.5.0"), "countercheck を 0.5.0 に更新しました");
 }
 
 /// With the system's Chinese font installed, every UI family can draw the whole Chinese catalog.
@@ -502,10 +502,10 @@ fn message_templates_match_real_messages() {
          @msg\t{a}{b}\tnever\n",
     );
     assert_eq!(cat.message("Download cancelled").as_deref(), Some("Скачивание отменено"));
-    assert_eq!(cat.message("Couldn't open omni-agent: no such file: x").as_deref(), Some("Не удалось открыть omni-agent: no such file: x"));
-    assert_eq!(cat.message("omni-agent updated to 0.5.0").as_deref(), Some("omni-agent обновлено до 0.5.0"));
+    assert_eq!(cat.message("Couldn't open countercheck: no such file: x").as_deref(), Some("Не удалось открыть countercheck: no such file: x"));
+    assert_eq!(cat.message("countercheck updated to 0.5.0").as_deref(), Some("countercheck обновлено до 0.5.0"));
     // The template that spells out more of the message wins.
-    assert_eq!(cat.message("omni-agent updated to 0.5.0 (no checksum)").as_deref(), Some("omni-agent обновлено до 0.5.0 (без суммы)"));
+    assert_eq!(cat.message("countercheck updated to 0.5.0 (no checksum)").as_deref(), Some("countercheck обновлено до 0.5.0 (без суммы)"));
     // Placeholders never match nothing, and unknown messages aren't touched.
     assert_eq!(cat.message("Couldn't open : x"), None);
     assert_eq!(cat.message("Something else"), None);

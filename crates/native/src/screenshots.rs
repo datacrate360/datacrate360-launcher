@@ -138,7 +138,7 @@ mod tests {
         use datacrate360_launcher_core::details::{feature, shot};
         // A page of four pictures (the built-in catalog has no pages yet).
         static PAGE: AppDetails = AppDetails {
-            id: "omni-agent",
+            id: "countercheck",
             headline: "Headline.",
             about: "About.",
             features: &[feature("A", "B")],

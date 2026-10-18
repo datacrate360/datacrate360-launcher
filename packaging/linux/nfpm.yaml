@@ -18,7 +18,7 @@ homepage: https://datacrate360.com
 license: MIT OR Apache-2.0
 description: |-
   Install, update and launch the DataCrate360 tools.
-  DataCrate360 Launcher lists the DataCrate360 tools (such as omni-agent),
+  DataCrate360 Launcher lists the DataCrate360 tools (such as countercheck),
   installs the right build for this computer and keeps them up to date from
   GitHub releases. It can live in the system tray.
 

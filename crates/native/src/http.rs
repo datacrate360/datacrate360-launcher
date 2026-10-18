@@ -541,9 +541,9 @@ pub(crate) mod tests {
             std::fs::File::options().write(true).open(&p).unwrap().set_modified(old).unwrap();
             p
         };
-        let keep = make("omni-agent-0.5.0-macos-universal.dmg.150000.part");
-        let legacy = make("omni-agent-0.5.0-macos-universal.part");
-        let finished = make("omni-agent-0.5.0-macos-universal.dmg");
+        let keep = make("countercheck-0.5.0-macos-universal.dmg.150000.part");
+        let legacy = make("countercheck-0.5.0-macos-universal.part");
+        let finished = make("countercheck-0.5.0-macos-universal.dmg");
         let fresh = dir.path().join("x.part");
         std::fs::write(&fresh, b"x").unwrap();
         clean_downloads(dir.path(), DAYS_30, DAYS_7);
@@ -837,7 +837,7 @@ pub(crate) mod tests {
     /// Answers one request with `head` (status line and headers) and an empty body.
     fn answer_once(head: String) -> String {
         let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let url = format!("http://{}/repos/datacrate360/omni-agent/releases/latest", listener.local_addr().unwrap());
+        let url = format!("http://{}/repos/datacrate360/countercheck/releases/latest", listener.local_addr().unwrap());
         std::thread::spawn(move || {
             let Ok((mut stream, _)) = listener.accept() else { return };
             let mut reader = BufReader::new(stream.try_clone().unwrap());
@@ -891,6 +891,6 @@ pub(crate) mod tests {
 
     #[test]
     fn partial_files_are_named_after_the_file_and_size() {
-        assert_eq!(part_path(Path::new("/d/omni-agent.dmg"), 9), Path::new("/d/omni-agent.dmg.9.part"));
+        assert_eq!(part_path(Path::new("/d/countercheck.dmg"), 9), Path::new("/d/countercheck.dmg.9.part"));
     }
 }

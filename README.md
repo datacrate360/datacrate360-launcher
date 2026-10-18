@@ -18,9 +18,9 @@ Today the catalog has one tool:
 
 | Tool | What it is for | Repository |
 |---|---|---|
-| **omni-agent** | Proof that AI work really happened | [`datacrate360/omni-agent`](https://github.com/datacrate360/omni-agent) |
+| **Countercheck** | Proof that AI work really happened | [`datacrate360/countercheck`](https://github.com/datacrate360/countercheck) |
 
-omni-agent has no published release yet, so the launcher shows it as **Coming soon** until one
+Countercheck has no published release yet, so the launcher shows it as **Coming soon** until one
 appears. Adding a tool is one row in [`crates/core/src/catalog.rs`](crates/core/src/catalog.rs)
 (plus its tagline in each UI catalog).
 
@@ -122,7 +122,7 @@ its own window six seconds after start (it needs no screen-recording permission)
 ### Installing your own builds
 
 To install tools from checkouts on your machine instead of GitHub, clone them next to this repo
-(`../omni-agent`) and run:
+(`../countercheck`) and run:
 
 ```sh
 cargo xtask local sync      # build and package each new version into ../local-mirror

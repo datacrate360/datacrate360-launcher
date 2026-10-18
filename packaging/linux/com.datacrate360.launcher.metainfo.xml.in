@@ -12,7 +12,7 @@
   </developer>
   <description>
     <p>
-      DataCrate360 Launcher lists every one of the DataCrate360 tools (such as omni-agent), installs
+      DataCrate360 Launcher lists every one of the DataCrate360 tools (such as countercheck), installs
       the right build for your computer, and keeps them up to date.
     </p>
     <ul>

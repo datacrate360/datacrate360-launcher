@@ -789,7 +789,7 @@ pub(crate) mod linux {
                     remove(&["rpm", "-e"], app.id)
                 }
             }
-            // The package detected (omni-agent, omni-agent-bin or omni-agent-git).
+            // The package detected (countercheck, countercheck-bin or countercheck-git).
             InstallSource::Pacman => remove(&["pacman", "-R", "--noconfirm"], installed.package.as_deref().unwrap_or(app.id)),
             InstallSource::Flatpak => {
                 let id = app.bundle_id();
@@ -1409,27 +1409,27 @@ mod tests {
         assert!(!missing.exists());
         assert!(selected_folder("relative/folder", true).is_err());
         assert!(selected_folder("bad\nfolder", true).is_err());
-        let app = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let app = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let locations = InstallLocations { root: Some(dir.path().display().to_string()), ..Default::default() };
-        assert_eq!(destination(app, PackageKind::Msi, None, None, &locations).unwrap(), Some(dir.path().join("omni-agent")));
+        assert_eq!(destination(app, PackageKind::Msi, None, None, &locations).unwrap(), Some(dir.path().join("Countercheck")));
         assert_eq!(destination(app, PackageKind::PortableZip, None, None, &locations).unwrap(), Some(dir.path().to_path_buf()));
-        let old = record("0.5.0", PackageKind::PortableZip, dir.path().join("omni-agent/omni-agent.exe"), vec![], false);
+        let old = record("0.5.0", PackageKind::PortableZip, dir.path().join("countercheck/countercheck.exe"), vec![], false);
         let unavailable = InstallLocations { root: Some(dir.path().join("missing").display().to_string()), ..Default::default() };
         assert_eq!(destination(app, PackageKind::PortableZip, None, Some(&old), &unavailable).unwrap(), None);
         let msi = Installed {
             version: None,
             source: InstallSource::Msi,
-            location: dir.path().join("MSI/omni-agent/omni-agent.exe").display().to_string(),
+            location: dir.path().join("MSI/countercheck/countercheck.exe").display().to_string(),
             package: None,
         };
-        assert_eq!(destination(app, PackageKind::Msi, Some(&msi), Some(&old), &unavailable).unwrap(), Some(dir.path().join("MSI/omni-agent")));
+        assert_eq!(destination(app, PackageKind::Msi, Some(&msi), Some(&old), &unavailable).unwrap(), Some(dir.path().join("MSI/countercheck")));
         assert!(destination(app, PackageKind::TarGz, None, None, &locations).unwrap_err().contains("aren't supported"));
     }
 
     #[test]
     fn updates_stay_beside_the_launchers_copy_and_new_installs_use_the_chosen_folder() {
         let dir = tempfile::tempdir().unwrap();
-        let app = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let app = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let path = dir.path().join("old.AppImage");
         let rec = record("0.5.0", PackageKind::AppImage, path.clone(), vec![], false);
         let launcher = Installed { version: None, source: InstallSource::Launcher, location: path.display().to_string(), package: None };
@@ -1450,7 +1450,7 @@ mod tests {
     fn msi_folder_assignment_preserves_spaces_unicode_and_root_separators() {
         for (value, argument) in [
             (r"D:\", r#"INSTALLFOLDER="D:\""#),
-            (r"D:\tools\omni-agent", r#"INSTALLFOLDER="D:\tools\omni-agent""#),
+            (r"D:\tools\countercheck", r#"INSTALLFOLDER="D:\tools\countercheck""#),
             (r"\\server\apps\绘画", r#"INSTALLFOLDER="\\server\apps\绘画""#),
             (r"D:\tools\", r#"INSTALLFOLDER="D:\tools\""#),
         ] {
@@ -1468,23 +1468,23 @@ mod tests {
         std::fs::create_dir(&folder).unwrap();
         let download = dir.path().join("download");
         std::fs::write(&download, "first").unwrap();
-        let unrelated = folder.join("omni-agent-unrelated.AppImage");
+        let unrelated = folder.join("countercheck-unrelated.AppImage");
         std::fs::write(&unrelated, "user copy").unwrap();
-        let (old, removed) = linux::install_appimage(&download, "omni-agent-0.5.0.AppImage", Some(&folder), None, false).unwrap();
+        let (old, removed) = linux::install_appimage(&download, "countercheck-0.5.0.AppImage", Some(&folder), None, false).unwrap();
         assert!(removed.is_empty());
         assert_eq!(std::fs::read(&old).unwrap(), b"first");
         let rec = record("0.5.0", PackageKind::AppImage, old.clone(), vec![], false);
         std::fs::write(&download, "updated").unwrap();
-        let (new, removed) = linux::install_appimage(&download, "omni-agent-0.6.0.AppImage", Some(&folder), Some(&rec), false).unwrap();
-        assert_eq!(new, folder.join("omni-agent-0.6.0.AppImage"));
+        let (new, removed) = linux::install_appimage(&download, "countercheck-0.6.0.AppImage", Some(&folder), Some(&rec), false).unwrap();
+        assert_eq!(new, folder.join("countercheck-0.6.0.AppImage"));
         assert_eq!(std::fs::read(&new).unwrap(), b"updated");
         assert_eq!(removed.as_slice(), std::slice::from_ref(&old));
         assert!(!old.exists());
         assert_eq!(std::fs::read(&unrelated).unwrap(), b"user copy");
-        assert!(linux::install_appimage(&download, "omni-agent-unrelated.AppImage", Some(&folder), Some(&rec), false).is_err());
+        assert!(linux::install_appimage(&download, "countercheck-unrelated.AppImage", Some(&folder), Some(&rec), false).is_err());
         assert_eq!(std::fs::read(&unrelated).unwrap(), b"user copy");
         let new_rec = record("0.6.0", PackageKind::AppImage, new.clone(), vec![], false);
-        assert!(linux::install_appimage(&download, "omni-agent-0.6.0.AppImage", Some(&folder), Some(&new_rec), false).is_ok());
+        assert!(linux::install_appimage(&download, "countercheck-0.6.0.AppImage", Some(&folder), Some(&new_rec), false).is_ok());
         assert_eq!(std::fs::read_dir(&folder).unwrap().count(), 2);
         let link = folder.join("linked.AppImage");
         std::os::unix::fs::symlink(&unrelated, &link).unwrap();
@@ -1501,14 +1501,14 @@ mod tests {
         std::fs::write(&download, "new").unwrap();
         let folder = dir.path().join("Apps");
         std::fs::create_dir(&folder).unwrap();
-        let theirs = folder.join("omni-agent.AppImage");
+        let theirs = folder.join("countercheck.AppImage");
         let personal = dir.path().join("personal.txt");
         std::fs::write(&theirs, "user copy").unwrap();
         std::fs::write(&personal, "user file").unwrap();
-        std::os::unix::fs::symlink(&personal, folder.join(".omni-agent.AppImage.partial")).unwrap();
-        assert!(linux::install_appimage(&download, "omni-agent.AppImage", Some(&folder), None, false).is_err());
+        std::os::unix::fs::symlink(&personal, folder.join(".countercheck.AppImage.partial")).unwrap();
+        assert!(linux::install_appimage(&download, "countercheck.AppImage", Some(&folder), None, false).is_err());
         assert_eq!(std::fs::read(&theirs).unwrap(), b"user copy");
-        linux::install_appimage(&download, "omni-agent.AppImage", Some(&folder), None, true).unwrap();
+        linux::install_appimage(&download, "countercheck.AppImage", Some(&folder), None, true).unwrap();
         assert_eq!(std::fs::read(&theirs).unwrap(), b"new");
         assert_eq!(std::fs::read(&personal).unwrap(), b"user file");
         assert_eq!(std::fs::read_dir(&folder).unwrap().count(), 2, "staging was left behind");
@@ -1517,15 +1517,15 @@ mod tests {
     #[test]
     fn a_new_install_reports_what_it_would_write_over() {
         let dir = tempfile::tempdir().unwrap();
-        let app = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let app = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let paths = Paths::under(dir.path());
         let locations = InstallLocations { root: Some(dir.path().display().to_string()), ..Default::default() };
-        let asset = Asset { name: "omni-agent.zip".into(), ..Default::default() };
+        let asset = Asset { name: "countercheck.zip".into(), ..Default::default() };
         let occupied = |previous| occupied(app, &asset, PackageKind::PortableZip, None, previous, &locations, &paths).unwrap();
         assert_eq!(occupied(None), None);
-        std::fs::create_dir(dir.path().join("omni-agent")).unwrap();
-        assert_eq!(occupied(None), Some(dir.path().join("omni-agent")));
-        let old = record("0.5.0", PackageKind::PortableZip, dir.path().join("omni-agent/omni-agent.exe"), vec![], false);
+        std::fs::create_dir(dir.path().join("countercheck")).unwrap();
+        assert_eq!(occupied(None), Some(dir.path().join("countercheck")));
+        let old = record("0.5.0", PackageKind::PortableZip, dir.path().join("countercheck/countercheck.exe"), vec![], false);
         assert_eq!(occupied(Some(&old)), None);
     }
 
@@ -1795,7 +1795,7 @@ mod tests {
     #[cfg(target_os = "linux")]
     #[test]
     fn an_app_sees_its_own_home_and_the_xdg_folders_inside_it() {
-        let home = PathBuf::from("/data/apps/omni-agent/home");
+        let home = PathBuf::from("/data/apps/countercheck/home");
         let env = home_env(&home);
         assert_eq!(env[0], ("HOME", home.clone()));
         for (name, dir) in &env[1..] {
@@ -2047,37 +2047,37 @@ mod tests {
         const TEAM: &str = "ABCDE12345";
         use super::*;
 
-        fn omni_agent() -> &'static SuiteApp {
-            SUITE.iter().find(|a| a.id == "omni-agent").unwrap()
+        fn countercheck() -> &'static SuiteApp {
+            SUITE.iter().find(|a| a.id == "countercheck").unwrap()
         }
 
-        /// A minimal `omni-agent.app` at `dir`, reporting `version`.
+        /// A minimal `countercheck.app` at `dir`, reporting `version`.
         fn bundle(dir: &Path, version: &str) -> PathBuf {
-            let app = dir.join("omni-agent.app");
+            let app = dir.join("countercheck.app");
             let contents = app.join("Contents");
             std::fs::create_dir_all(contents.join("MacOS")).unwrap();
             std::fs::write(
                 contents.join("Info.plist"),
                 format!(
                     "<?xml version=\"1.0\" encoding=\"UTF-8\"?><plist version=\"1.0\"><dict>\
-                     <key>CFBundleIdentifier</key><string>com.datacrate360.omni-agent</string>\
-                     <key>CFBundleExecutable</key><string>omni-agent</string>\
+                     <key>CFBundleIdentifier</key><string>com.datacrate360.countercheck</string>\
+                     <key>CFBundleExecutable</key><string>countercheck</string>\
                      <key>CFBundleShortVersionString</key><string>{version}</string></dict></plist>"
                 ),
             )
             .unwrap();
-            std::fs::write(contents.join("MacOS/omni-agent"), version).unwrap();
+            std::fs::write(contents.join("MacOS/countercheck"), version).unwrap();
             app
         }
 
-        /// A release-style disk image holding a `omni-agent.app` that reports `version`.
+        /// A release-style disk image holding a `countercheck.app` that reports `version`.
         fn dmg(dir: &Path, version: &str) -> PathBuf {
             let src = dir.join(format!("src-{version}"));
             bundle(&src, version);
-            let dmg = dir.join(format!("omni-agent-{version}-macos-universal.dmg"));
+            let dmg = dir.join(format!("countercheck-{version}-macos-universal.dmg"));
             let _one_at_a_time = super::macos::DISK_IMAGES.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
             let ok = std::process::Command::new("hdiutil")
-                .args(["create", "-quiet", "-format", "UDZO", "-volname", "omni-agent", "-srcfolder"])
+                .args(["create", "-quiet", "-format", "UDZO", "-volname", "countercheck", "-srcfolder"])
                 .arg(&src)
                 .arg(&dmg)
                 .status()
@@ -2095,25 +2095,25 @@ mod tests {
             let paths = Paths::under(dir.path());
             let image = dmg(dir.path(), "0.6.0");
             let expect = Expect { team: None, version: None };
-            let placed = install_dmg(omni_agent(), &image, None, Some(&apps), false, &paths, &expect).unwrap();
-            assert_eq!(placed, apps.join("omni-agent.app"));
+            let placed = install_dmg(countercheck(), &image, None, Some(&apps), false, &paths, &expect).unwrap();
+            assert_eq!(placed, apps.join("Countercheck.app"));
             let mut manifest = crate::manifest::Manifest::default();
-            manifest.apps.insert("omni-agent".into(), record("0.6.0", PackageKind::Dmg, placed.clone(), vec![], false));
-            let existing = crate::detect::detect(omni_agent(), &manifest, &crate::detect::Snapshot::default()).unwrap();
+            manifest.apps.insert("countercheck".into(), record("0.6.0", PackageKind::Dmg, placed.clone(), vec![], false));
+            let existing = crate::detect::detect(countercheck(), &manifest, &crate::detect::Snapshot::default()).unwrap();
             assert_eq!(existing.source, InstallSource::MacApp);
             assert_eq!(existing.location, placed.display().to_string());
             assert_eq!(existing.version.unwrap().to_string(), "0.6.0");
-            let existing = crate::detect::detect(omni_agent(), &manifest, &crate::detect::Snapshot::default()).unwrap();
+            let existing = crate::detect::detect(countercheck(), &manifest, &crate::detect::Snapshot::default()).unwrap();
             let new_default = dir.path().join("Other Apps");
             std::fs::create_dir(&new_default).unwrap();
             let update = dmg(dir.path(), "0.7.0");
-            assert_eq!(install_dmg(omni_agent(), &update, Some(&existing), Some(&new_default), false, &paths, &expect).unwrap(), placed);
-            assert!(!new_default.join("omni-agent.app").exists());
-            let detected = crate::detect::detect(omni_agent(), &manifest, &crate::detect::Snapshot::default()).unwrap();
+            assert_eq!(install_dmg(countercheck(), &update, Some(&existing), Some(&new_default), false, &paths, &expect).unwrap(), placed);
+            assert!(!new_default.join("countercheck.app").exists());
+            let detected = crate::detect::detect(countercheck(), &manifest, &crate::detect::Snapshot::default()).unwrap();
             assert_eq!(detected.version.unwrap().to_string(), "0.7.0");
             std::fs::write(placed.join("Contents/Info.plist"), "invalid").unwrap();
             assert_ne!(
-                crate::detect::detect(omni_agent(), &manifest, &crate::detect::Snapshot::default()).map(|i| i.source),
+                crate::detect::detect(countercheck(), &manifest, &crate::detect::Snapshot::default()).map(|i| i.source),
                 Some(InstallSource::Launcher)
             );
         }
@@ -2123,14 +2123,14 @@ mod tests {
             let dir = tempfile::tempdir().unwrap();
             let placed = bundle(dir.path(), "0.5.0");
             let plist = placed.join("Contents/Info.plist");
-            let unrelated = std::fs::read_to_string(&plist).unwrap().replace("com.datacrate360.omni-agent", "com.example.other");
+            let unrelated = std::fs::read_to_string(&plist).unwrap().replace("com.datacrate360.countercheck", "com.example.other");
             std::fs::write(&plist, &unrelated).unwrap();
             let image = dmg(dir.path(), "0.6.0");
             let result =
-                install_dmg(omni_agent(), &image, None, Some(dir.path()), false, &Paths::under(dir.path()), &Expect { team: None, version: None });
+                install_dmg(countercheck(), &image, None, Some(dir.path()), false, &Paths::under(dir.path()), &Expect { team: None, version: None });
             assert!(result.unwrap_err().contains("already exists"));
             assert_eq!(std::fs::read_to_string(plist).unwrap(), unrelated);
-            assert_eq!(std::fs::read(placed.join("Contents/MacOS/omni-agent")).unwrap(), b"0.5.0");
+            assert_eq!(std::fs::read(placed.join("Contents/MacOS/countercheck")).unwrap(), b"0.5.0");
         }
 
         #[test]
@@ -2159,19 +2159,19 @@ mod tests {
             let image = dmg(dir.path(), "0.6.0");
 
             for (release, ok) in [("0.6.0", true), ("0.7.0", false), ("0.6.0-rc.1", true), ("0.5.0", false)] {
-                std::fs::write(current.join("Contents/MacOS/omni-agent"), "0.5.0").unwrap();
+                std::fs::write(current.join("Contents/MacOS/countercheck"), "0.5.0").unwrap();
                 let want = version::parse(release).unwrap();
                 let expect = Expect { team: None, version: Some(&want) };
-                let result = install_dmg(omni_agent(), &image, Some(&existing), None, false, &paths, &expect);
+                let result = install_dmg(countercheck(), &image, Some(&existing), None, false, &paths, &expect);
                 assert_eq!(result.is_ok(), ok, "release {release}: {result:?}");
-                let now = std::fs::read_to_string(current.join("Contents/MacOS/omni-agent")).unwrap();
+                let now = std::fs::read_to_string(current.join("Contents/MacOS/countercheck")).unwrap();
                 assert_eq!(now, if ok { "0.6.0" } else { "0.5.0" }, "release {release}");
                 if !ok {
                     assert_eq!(result, Err(format!("the app inside isn't version {release}, so it wasn't installed")));
                 }
                 assert_eq!(
                     std::fs::read_dir(&apps).unwrap().map(|e| e.unwrap().file_name()).collect::<Vec<_>>(),
-                    [std::ffi::OsString::from("omni-agent.app")]
+                    [std::ffi::OsString::from("countercheck.app")]
                 );
             }
 
@@ -2179,7 +2179,7 @@ mod tests {
             let rc = dmg(dir.path(), "0.8.0-rc.2");
             let want = version::parse("0.8.0-rc.1").unwrap();
             let expect = Expect { team: None, version: Some(&want) };
-            assert!(install_dmg(omni_agent(), &rc, Some(&existing), None, false, &paths, &expect).is_err());
+            assert!(install_dmg(countercheck(), &rc, Some(&existing), None, false, &paths, &expect).is_err());
         }
 
         #[test]
@@ -2192,7 +2192,7 @@ mod tests {
             let release = Release { tag: "v0.6.0".into(), version: version::parse("0.6.0"), ..Release::default() };
 
             let result = install_dmg(
-                omni_agent(),
+                countercheck(),
                 &image,
                 Some(&existing),
                 None,
@@ -2201,14 +2201,14 @@ mod tests {
                 &Expect { team: Some(TEAM), version: release.version.as_ref() },
             );
             assert_eq!(result, Err("the app isn't signed by its developer, so it wasn't installed".into()));
-            assert_eq!(std::fs::read_to_string(current.join("Contents/MacOS/omni-agent")).unwrap(), "0.5.0");
+            assert_eq!(std::fs::read_to_string(current.join("Contents/MacOS/countercheck")).unwrap(), "0.5.0");
             assert_eq!(
                 std::fs::read_dir(&apps).unwrap().map(|e| e.unwrap().file_name()).collect::<Vec<_>>(),
-                [std::ffi::OsString::from("omni-agent.app")]
+                [std::ffi::OsString::from("countercheck.app")]
             );
         }
 
-        /// A real release passes. Run with `DATACRATE360_TEAM_ID=<team> DATACRATE360_APP=/path/to/omni-agent.app cargo test -p
+        /// A real release passes. Run with `DATACRATE360_TEAM_ID=<team> DATACRATE360_APP=/path/to/countercheck.app cargo test -p
         /// datacrate360-launcher-native -- --ignored a_real_tool`.
         #[test]
         #[ignore = "needs a tool from a real release"]

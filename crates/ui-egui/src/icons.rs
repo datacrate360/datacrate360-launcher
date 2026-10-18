@@ -5,7 +5,7 @@ use egui::ImageSource;
 /// The 128 px icon of a tool. A tool without an icon of its own shows the DataCrate360 mark.
 pub fn app(id: &str) -> Option<ImageSource<'static>> {
     // One arm per tool with its own icon, e.g.
-    // `"omni-agent" => egui::include_image!("../../../assets/app-icons/omni-agent.png"),`
+    // `"countercheck" => egui::include_image!("../../../assets/app-icons/countercheck.png"),`
     let _ = id;
     Some(datacrate360_mark())
 }

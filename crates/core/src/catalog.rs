@@ -26,9 +26,9 @@ impl AppGroup {
 /// One app in the suite.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SuiteApp {
-    /// Machine name: repo, binary, package and asset stem (`omni-agent`).
+    /// Machine name: repo, binary, package and asset stem (`countercheck`).
     pub id: &'static str,
-    /// Display name (`omni-agent`).
+    /// Display name (`countercheck`).
     pub name: &'static str,
     /// What it's for, in a few words (English; the UI translates it by app id).
     pub tagline: &'static str,
@@ -98,7 +98,7 @@ const TEAL: [[u8; 3]; 3] = [[0x10, 0x50, 0x50], [0x0f, 0x4c, 0x4c], [0x6f, 0xc4,
 
 /// The DataCrate360 tools, in display order. Adding a tool is one more row.
 pub const SUITE: [SuiteApp; 1] =
-    [app("omni-agent", "omni-agent", "Proof that AI work really happened", AppGroup::AiTools, TEAL, "datacrate360/omni-agent")];
+    [app("countercheck", "Countercheck", "Proof that AI work really happened", AppGroup::AiTools, TEAL, "datacrate360/countercheck")];
 
 /// DataCrate360's website.
 pub const WEBSITE_URL: &str = "https://datacrate360.com";
@@ -187,14 +187,14 @@ mod tests {
     }
 
     #[test]
-    fn omni_agent_is_in_the_catalog() {
-        let omni = SuiteApp::by_id("omni-agent").unwrap();
-        assert_eq!(omni.name, "omni-agent");
+    fn countercheck_is_in_the_catalog() {
+        let omni = SuiteApp::by_id("countercheck").unwrap();
+        assert_eq!(omni.name, "Countercheck");
         assert_eq!(omni.tagline, "Proof that AI work really happened");
         assert_eq!(omni.group.label(), "AI tools");
-        assert_eq!(omni.stems().collect::<Vec<_>>(), ["omni-agent"]);
-        assert_eq!(omni.releases_url(), "https://github.com/datacrate360/omni-agent/releases");
-        assert_eq!(omni.bundle_id(), "com.datacrate360.omni-agent");
+        assert_eq!(omni.stems().collect::<Vec<_>>(), ["countercheck"]);
+        assert_eq!(omni.releases_url(), "https://github.com/datacrate360/countercheck/releases");
+        assert_eq!(omni.bundle_id(), "com.datacrate360.countercheck");
         assert_eq!(omni.website(), "https://datacrate360.com");
         assert_eq!(SuiteApp::by_id("beta"), None);
     }

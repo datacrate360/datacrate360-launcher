@@ -20,7 +20,7 @@ pub const MARKER: &str = "X-DataCrate360-Launcher=true";
 /// tool; a tool without a row gets `Utility` and no window class).
 pub fn meta(app: &SuiteApp) -> (&'static str, Option<&'static str>) {
     match app.id {
-        "omni-agent" => ("Development;Utility;", None),
+        "countercheck" => ("Development;Utility;", None),
         _ => ("Utility;", None),
     }
 }
@@ -131,13 +131,13 @@ mod tests {
 
     #[test]
     fn writes_a_complete_entry() {
-        let text = render(app("omni-agent"), Path::new("/home/ana/Applications/omni-agent-0.6.0-linux-x86_64.AppImage"), true).unwrap();
+        let text = render(app("countercheck"), Path::new("/home/ana/Applications/countercheck-0.6.0-linux-x86_64.AppImage"), true).unwrap();
         let expected = format!(
-            "[Desktop Entry]\nType=Application\nName=omni-agent\nComment={}\n\
-             Exec=\"/home/ana/Applications/omni-agent-0.6.0-linux-x86_64.AppImage\" %F\n\
-             Icon=com.datacrate360.omni-agent\nTerminal=false\nCategories=Development;Utility;\n\
-             StartupWMClass=com.datacrate360.omni-agent\nX-DataCrate360-Launcher=true\n",
-            app("omni-agent").tagline
+            "[Desktop Entry]\nType=Application\nName=Countercheck\nComment={}\n\
+             Exec=\"/home/ana/Applications/countercheck-0.6.0-linux-x86_64.AppImage\" %F\n\
+             Icon=com.datacrate360.countercheck\nTerminal=false\nCategories=Development;Utility;\n\
+             StartupWMClass=com.datacrate360.countercheck\nX-DataCrate360-Launcher=true\n",
+            app("countercheck").tagline
         );
         assert_eq!(text, expected);
         assert!(is_ours(&text));
@@ -153,7 +153,7 @@ mod tests {
         assert_eq!(exec_quote(Path::new("/a/\"q\" $HOME `x`.AppImage")).unwrap(), r#""/a/\\"q\\" \\$HOME \\`x\\`.AppImage""#);
         assert_eq!(exec_quote(Path::new(r"/a\b/100%.AppImage")).unwrap(), r#""/a\\\\b/100%%.AppImage""#);
         assert_eq!(exec_quote(Path::new("/a/line\nbreak.AppImage")), None);
-        assert!(render(app("omni-agent"), Path::new("/a/line\nbreak.AppImage"), true).is_none());
+        assert!(render(app("countercheck"), Path::new("/a/line\nbreak.AppImage"), true).is_none());
     }
 
     #[test]
@@ -162,11 +162,11 @@ mod tests {
             let text = render(app("lambda"), Path::new(p), false).unwrap();
             assert_eq!(exec_program(&text).map(PathBuf::from), Some(PathBuf::from(p)), "{p}");
         }
-        // omni-agent's AppRun writes its own entry, unmarked.
-        let theirs = "[Desktop Entry]\nName=omni-agent\nExec=\"/home/ana/Applications/omni-agent-0.5.0-linux-x86_64.AppImage\" %F\n";
-        assert_eq!(exec_program(theirs).as_deref(), Some("/home/ana/Applications/omni-agent-0.5.0-linux-x86_64.AppImage"));
+        // countercheck's AppRun writes its own entry, unmarked.
+        let theirs = "[Desktop Entry]\nName=countercheck\nExec=\"/home/ana/Applications/countercheck-0.5.0-linux-x86_64.AppImage\" %F\n";
+        assert_eq!(exec_program(theirs).as_deref(), Some("/home/ana/Applications/countercheck-0.5.0-linux-x86_64.AppImage"));
         assert!(!is_ours(theirs));
-        assert_eq!(exec_program("[Desktop Entry]\nExec=omni-agent %F\n").as_deref(), Some("omni-agent"));
+        assert_eq!(exec_program("[Desktop Entry]\nExec=countercheck %F\n").as_deref(), Some("countercheck"));
         assert_eq!(exec_program("[Desktop Entry]\nName=x\n"), None);
     }
 }

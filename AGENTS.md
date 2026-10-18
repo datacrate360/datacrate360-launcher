@@ -1,7 +1,7 @@
 # AGENTS.md: guide for AI agents and contributors
 
 DataCrate360 Launcher installs, updates and launches the **DataCrate360 tools** (today:
-omni-agent). It is written in **Rust only** (no JavaScript or TypeScript): the desktop app is
+Countercheck). It is written in **Rust only** (no JavaScript or TypeScript): the desktop app is
 native egui/eframe, and the web build is the same Rust compiled to WebAssembly (trunk +
 wasm-bindgen). **No Tauri, Electron or webview shells**, ever.
 
@@ -103,7 +103,7 @@ for `{placeholders}`, `tn` for counts). English in the code is the lookup key; a
 means adding its row to every catalog marked `complete_menus` (the `*.tsv` files in
 `crates/ui-egui/src/i18n/`), which the i18n tests check. Translate from the meaning of the English
 text, never through another catalog. Product and tool names (DataCrate360 Launcher, DataCrate360
-tools, omni-agent) stay in English. A CJK language is drawn with the system's own CJK font
+tools, Countercheck) stay in English. A CJK language is drawn with the system's own CJK font
 (`crates/ui-egui/src/cjk_font.rs`, desktop only): never bundle a CJK font.
 
 ### Other rules

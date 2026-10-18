@@ -18,7 +18,7 @@ use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Every tool: (id = folder name, display name). Keep in step with `catalog::SUITE`.
-const APPS: &[(&str, &str)] = &[("omni-agent", "omni-agent")];
+const APPS: &[(&str, &str)] = &[("countercheck", "countercheck")];
 
 const DEFAULT_PORT: u16 = 8787;
 /// Marks a version folder whose build finished; anything without it is ignored and rebuilt.
@@ -686,18 +686,18 @@ mod tests {
     #[test]
     fn writes_a_feed_the_launcher_reads() {
         let mirror = std::env::temp_dir().join(format!("xtask-local-{}", std::process::id()));
-        let dir = mirror.join("omni-agent").join("0.6.0");
+        let dir = mirror.join("countercheck").join("0.6.0");
         std::fs::create_dir_all(&dir).unwrap();
-        std::fs::write(dir.join("omni-agent-0.6.0-macos-aarch64.dmg"), b"dmg").unwrap();
-        std::fs::write(dir.join(SUMS), format!("{}  omni-agent-0.6.0-macos-aarch64.dmg\n", "ab".repeat(32))).unwrap();
+        std::fs::write(dir.join("countercheck-0.6.0-macos-aarch64.dmg"), b"dmg").unwrap();
+        std::fs::write(dir.join(SUMS), format!("{}  countercheck-0.6.0-macos-aarch64.dmg\n", "ab".repeat(32))).unwrap();
         std::fs::write(dir.join(NOTES), "Built \"locally\".\n").unwrap();
         // Unfinished builds are invisible.
-        std::fs::create_dir_all(mirror.join("omni-agent").join("0.7.0")).unwrap();
+        std::fs::create_dir_all(mirror.join("countercheck").join("0.7.0")).unwrap();
         std::fs::write(dir.join(COMPLETE), "").unwrap();
         let json = feed(&mirror, "http://127.0.0.1:8787/");
         let _ = std::fs::remove_dir_all(&mirror);
         assert!(json.contains(r#""tag":"v0.6.0""#), "{json}");
-        assert!(json.contains(r#""download_url":"http://127.0.0.1:8787/omni-agent/0.6.0/omni-agent-0.6.0-macos-aarch64.dmg""#));
+        assert!(json.contains(r#""download_url":"http://127.0.0.1:8787/countercheck/0.6.0/countercheck-0.6.0-macos-aarch64.dmg""#));
         assert!(json.contains(r#""size_bytes":3"#) && json.contains(&"ab".repeat(32)));
         assert!(json.contains(r#"Built \"locally\".\n"#));
         assert!(!json.contains("0.7.0"));
@@ -729,7 +729,7 @@ mod tests {
 
     #[test]
     fn only_plain_names_are_served() {
-        assert!(safe_name("omni-agent-0.6.0-macos-universal.dmg"));
+        assert!(safe_name("countercheck-0.6.0-macos-universal.dmg"));
         for bad in ["", ".", "..", "a/b", "a\\b", "a%2e"] {
             assert!(!safe_name(bad), "{bad}");
         }

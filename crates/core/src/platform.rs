@@ -1,7 +1,7 @@
 //! Platforms, package formats, and choosing the right release asset.
 //!
 //! Every tool release names its files `<app>-<version>-<os>-<arch>[-portable].<ext>`, for
-//! example `omni-agent-0.5.0-windows-x64.msi` or `omni-agent-0.5.0-linux-aarch64.AppImage`.
+//! example `countercheck-0.5.0-windows-x64.msi` or `countercheck-0.5.0-linux-aarch64.AppImage`.
 //!
 //! Labels are English. The UI translates [`PackageKind::label`]; OS and architecture names are
 //! shown as they are.
@@ -236,32 +236,35 @@ mod tests {
     }
 
     const PHOTO: &[&str] = &[
-        "omni-agent-0.5.0-freebsd-x86_64.tar.gz",
-        "omni-agent-0.5.0-linux-aarch64.AppImage",
-        "omni-agent-0.5.0-linux-aarch64.AppImage.zsync",
-        "omni-agent-0.5.0-linux-aarch64.deb",
-        "omni-agent-0.5.0-linux-riscv64.tar.gz",
-        "omni-agent-0.5.0-linux-x86_64.AppImage",
-        "omni-agent-0.5.0-linux-x86_64.tar.gz",
-        "omni-agent-0.5.0-macos-universal.dmg",
-        "omni-agent-0.5.0-windows-x64-portable.zip",
-        "omni-agent-0.5.0-windows-x64.msi",
-        "omni-agent-0.5.0-windows-x86.msi",
-        "omni-agent-cli-0.5.0-macos-universal.zip",
-        "omni-agent-web-0.5.0.zip",
+        "countercheck-0.5.0-freebsd-x86_64.tar.gz",
+        "countercheck-0.5.0-linux-aarch64.AppImage",
+        "countercheck-0.5.0-linux-aarch64.AppImage.zsync",
+        "countercheck-0.5.0-linux-aarch64.deb",
+        "countercheck-0.5.0-linux-riscv64.tar.gz",
+        "countercheck-0.5.0-linux-x86_64.AppImage",
+        "countercheck-0.5.0-linux-x86_64.tar.gz",
+        "countercheck-0.5.0-macos-universal.dmg",
+        "countercheck-0.5.0-windows-x64-portable.zip",
+        "countercheck-0.5.0-windows-x64.msi",
+        "countercheck-0.5.0-windows-x86.msi",
+        "countercheck-cli-0.5.0-macos-universal.zip",
+        "countercheck-web-0.5.0.zip",
         "SHA256SUMS.txt",
     ];
 
     #[test]
     fn reads_asset_names() {
-        let n = parse_asset_name("omni-agent-0.2.0-rc.1-windows-arm64-portable.zip", &["omni-agent"]).unwrap();
+        let n = parse_asset_name("countercheck-0.2.0-rc.1-windows-arm64-portable.zip", &["countercheck"]).unwrap();
         assert_eq!((n.version.as_str(), n.token.as_str(), n.kind), ("0.2.0-rc.1", "windows-arm64", PackageKind::PortableZip));
         let n = parse_asset_name("epsilonold-0.2.1-linux-x86_64.tar.gz", &["epsilon", "epsilonold"]).unwrap();
         assert_eq!((n.stem.as_str(), n.kind), ("epsilonold", PackageKind::TarGz));
-        for other in
-            ["omni-agent-cli-0.5.0-macos-universal.zip", "omni-agent-web-0.5.0.zip", "SHA256SUMS.txt", "omni-agent-0.5.0-linux-x86_64.AppImage.zsync"]
-        {
-            assert_eq!(parse_asset_name(other, &["omni-agent"]), None, "{other}");
+        for other in [
+            "countercheck-cli-0.5.0-macos-universal.zip",
+            "countercheck-web-0.5.0.zip",
+            "SHA256SUMS.txt",
+            "countercheck-0.5.0-linux-x86_64.AppImage.zsync",
+        ] {
+            assert_eq!(parse_asset_name(other, &["countercheck"]), None, "{other}");
         }
         // Tau also ships its collaboration server; that tarball is not the app.
         assert_eq!(parse_asset_name("tau-server-0.5.1-linux-x86_64.tar.gz", &["tau"]), None);
@@ -271,75 +274,82 @@ mod tests {
     #[test]
     fn picks_the_native_build_first_and_falls_back_to_emulation() {
         let r = release(PHOTO);
-        let pick = |os, arch, kinds: &[PackageKind]| pick_asset(&r, &["omni-agent"], Platform { os, arch }, kinds).map(|(a, _)| a.name.clone());
-        assert_eq!(pick(Os::MacOs, Arch::Arm64, &[PackageKind::Dmg]).as_deref(), Some("omni-agent-0.5.0-macos-universal.dmg"));
-        assert_eq!(pick(Os::Windows, Arch::X64, &[PackageKind::Msi]).as_deref(), Some("omni-agent-0.5.0-windows-x64.msi"));
+        let pick = |os, arch, kinds: &[PackageKind]| pick_asset(&r, &["countercheck"], Platform { os, arch }, kinds).map(|(a, _)| a.name.clone());
+        assert_eq!(pick(Os::MacOs, Arch::Arm64, &[PackageKind::Dmg]).as_deref(), Some("countercheck-0.5.0-macos-universal.dmg"));
+        assert_eq!(pick(Os::Windows, Arch::X64, &[PackageKind::Msi]).as_deref(), Some("countercheck-0.5.0-windows-x64.msi"));
         // No arm64 MSI in this release: Windows on ARM runs the x64 build.
-        assert_eq!(pick(Os::Windows, Arch::Arm64, &[PackageKind::Msi]).as_deref(), Some("omni-agent-0.5.0-windows-x64.msi"));
-        assert_eq!(pick(Os::Linux, Arch::Arm64, &[PackageKind::AppImage]).as_deref(), Some("omni-agent-0.5.0-linux-aarch64.AppImage"));
+        assert_eq!(pick(Os::Windows, Arch::Arm64, &[PackageKind::Msi]).as_deref(), Some("countercheck-0.5.0-windows-x64.msi"));
+        assert_eq!(pick(Os::Linux, Arch::Arm64, &[PackageKind::AppImage]).as_deref(), Some("countercheck-0.5.0-linux-aarch64.AppImage"));
         assert_eq!(pick(Os::Linux, Arch::Arm64, &[PackageKind::TarGz]), None);
-        assert_eq!(pick(Os::Linux, Arch::Riscv64, &[PackageKind::TarGz]).as_deref(), Some("omni-agent-0.5.0-linux-riscv64.tar.gz"));
-        assert_eq!(pick(Os::FreeBsd, Arch::X64, &[PackageKind::TarGz]).as_deref(), Some("omni-agent-0.5.0-freebsd-x86_64.tar.gz"));
+        assert_eq!(pick(Os::Linux, Arch::Riscv64, &[PackageKind::TarGz]).as_deref(), Some("countercheck-0.5.0-linux-riscv64.tar.gz"));
+        assert_eq!(pick(Os::FreeBsd, Arch::X64, &[PackageKind::TarGz]).as_deref(), Some("countercheck-0.5.0-freebsd-x86_64.tar.gz"));
         // Preference order across kinds.
         assert_eq!(
             pick(Os::Windows, Arch::X64, &[PackageKind::PortableZip, PackageKind::Msi]).as_deref(),
-            Some("omni-agent-0.5.0-windows-x64-portable.zip")
+            Some("countercheck-0.5.0-windows-x64-portable.zip")
         );
-        assert_eq!(pick(Os::Windows, Arch::X86, &[PackageKind::PortableZip, PackageKind::Msi]).as_deref(), Some("omni-agent-0.5.0-windows-x86.msi"));
+        assert_eq!(
+            pick(Os::Windows, Arch::X86, &[PackageKind::PortableZip, PackageKind::Msi]).as_deref(),
+            Some("countercheck-0.5.0-windows-x86.msi")
+        );
 
         let p_riscv = Platform { os: Os::Linux, arch: Arch::Riscv64 };
         assert_eq!(
-            pick_asset(&r, &["omni-agent"], p_riscv, p_riscv.default_kinds()).map(|(a, _)| a.name.clone()).as_deref(),
-            Some("omni-agent-0.5.0-linux-riscv64.tar.gz")
+            pick_asset(&r, &["countercheck"], p_riscv, p_riscv.default_kinds()).map(|(a, _)| a.name.clone()).as_deref(),
+            Some("countercheck-0.5.0-linux-riscv64.tar.gz")
         );
         assert_eq!(
-            pick_asset(&r, &["omni-agent"], p_riscv, p_riscv.download_kinds()).map(|(a, _)| a.name.clone()).as_deref(),
-            Some("omni-agent-0.5.0-linux-riscv64.tar.gz")
+            pick_asset(&r, &["countercheck"], p_riscv, p_riscv.download_kinds()).map(|(a, _)| a.name.clone()).as_deref(),
+            Some("countercheck-0.5.0-linux-riscv64.tar.gz")
         );
         let r_riscv_deb =
-            release(&["omni-agent-0.5.0-linux-riscv64.tar.gz", "omni-agent-0.5.0-linux-riscv64.deb", "omni-agent-0.5.0-linux-riscv64.rpm"]);
+            release(&["countercheck-0.5.0-linux-riscv64.tar.gz", "countercheck-0.5.0-linux-riscv64.deb", "countercheck-0.5.0-linux-riscv64.rpm"]);
         assert_eq!(
-            pick_asset(&r_riscv_deb, &["omni-agent"], p_riscv, p_riscv.download_kinds()).map(|(a, _)| a.name.clone()).as_deref(),
-            Some("omni-agent-0.5.0-linux-riscv64.deb")
+            pick_asset(&r_riscv_deb, &["countercheck"], p_riscv, p_riscv.download_kinds()).map(|(a, _)| a.name.clone()).as_deref(),
+            Some("countercheck-0.5.0-linux-riscv64.deb")
         );
     }
 
     #[test]
     fn strictly_matches_architecture_for_all_linux_package_formats() {
         let multi_arch_release = release(&[
-            "omni-agent-0.5.0-linux-aarch64.AppImage",
-            "omni-agent-0.5.0-linux-x86_64.AppImage",
-            "omni-agent-0.5.0-linux-aarch64.deb",
-            "omni-agent-0.5.0-linux-x86_64.deb",
-            "omni-agent-0.5.0-linux-aarch64.rpm",
-            "omni-agent-0.5.0-linux-x86_64.rpm",
-            "omni-agent-0.5.0-linux-aarch64.flatpak",
-            "omni-agent-0.5.0-linux-x86_64.flatpak",
-            "omni-agent-0.5.0-linux-aarch64.tar.gz",
-            "omni-agent-0.5.0-linux-x86_64.tar.gz",
+            "countercheck-0.5.0-linux-aarch64.AppImage",
+            "countercheck-0.5.0-linux-x86_64.AppImage",
+            "countercheck-0.5.0-linux-aarch64.deb",
+            "countercheck-0.5.0-linux-x86_64.deb",
+            "countercheck-0.5.0-linux-aarch64.rpm",
+            "countercheck-0.5.0-linux-x86_64.rpm",
+            "countercheck-0.5.0-linux-aarch64.flatpak",
+            "countercheck-0.5.0-linux-x86_64.flatpak",
+            "countercheck-0.5.0-linux-aarch64.tar.gz",
+            "countercheck-0.5.0-linux-x86_64.tar.gz",
         ]);
 
         let p_x64 = Platform { os: Os::Linux, arch: Arch::X64 };
         let p_arm64 = Platform { os: Os::Linux, arch: Arch::Arm64 };
 
         for kind in [PackageKind::AppImage, PackageKind::Deb, PackageKind::Rpm, PackageKind::Flatpak, PackageKind::TarGz] {
-            let pick_x64 = pick_asset(&multi_arch_release, &["omni-agent"], p_x64, &[kind]).map(|(a, _)| a.name.clone());
+            let pick_x64 = pick_asset(&multi_arch_release, &["countercheck"], p_x64, &[kind]).map(|(a, _)| a.name.clone());
             assert!(pick_x64.as_deref().unwrap().contains("linux-x86_64"), "Expected x86_64 asset for {kind:?}, got {pick_x64:?}");
 
-            let pick_arm64 = pick_asset(&multi_arch_release, &["omni-agent"], p_arm64, &[kind]).map(|(a, _)| a.name.clone());
+            let pick_arm64 = pick_asset(&multi_arch_release, &["countercheck"], p_arm64, &[kind]).map(|(a, _)| a.name.clone());
             assert!(pick_arm64.as_deref().unwrap().contains("linux-aarch64"), "Expected aarch64 asset for {kind:?}, got {pick_arm64:?}");
         }
 
         // On x86_64 Linux, an aarch64-only asset must NEVER match or fall back
         let arm_only_release = release(&[
-            "omni-agent-0.5.0-linux-aarch64.AppImage",
-            "omni-agent-0.5.0-linux-aarch64.deb",
-            "omni-agent-0.5.0-linux-aarch64.rpm",
-            "omni-agent-0.5.0-linux-aarch64.flatpak",
-            "omni-agent-0.5.0-linux-aarch64.tar.gz",
+            "countercheck-0.5.0-linux-aarch64.AppImage",
+            "countercheck-0.5.0-linux-aarch64.deb",
+            "countercheck-0.5.0-linux-aarch64.rpm",
+            "countercheck-0.5.0-linux-aarch64.flatpak",
+            "countercheck-0.5.0-linux-aarch64.tar.gz",
         ]);
         for kind in [PackageKind::AppImage, PackageKind::Deb, PackageKind::Rpm, PackageKind::Flatpak, PackageKind::TarGz] {
-            assert_eq!(pick_asset(&arm_only_release, &["omni-agent"], p_x64, &[kind]), None, "x86_64 must never match an aarch64 asset for {kind:?}");
+            assert_eq!(
+                pick_asset(&arm_only_release, &["countercheck"], p_x64, &[kind]),
+                None,
+                "x86_64 must never match an aarch64 asset for {kind:?}"
+            );
         }
     }
 }

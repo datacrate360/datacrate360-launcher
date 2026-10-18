@@ -1153,7 +1153,7 @@ mod tests {
     fn feed() -> Feed {
         Feed::parse(
             r#"{"release_info": {"apps": {
-            "omni-agent": {"repo": "datacrate360/omni-agent", "latest_release": {"tag": "v0.6.0"}, "app_last_fetched": "2026-10-09T13:00:00Z"}
+            "countercheck": {"repo": "datacrate360/countercheck", "latest_release": {"tag": "v0.6.0"}, "app_last_fetched": "2026-10-09T13:00:00Z"}
         }}}"#,
         )
         .unwrap()
@@ -1203,7 +1203,7 @@ mod tests {
 
     #[test]
     fn a_local_mirror_answers_for_every_app_on_its_own() {
-        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let word = datacrate360_launcher_core::catalog::fixtures::by_id("theta").unwrap();
         let feed = feed().with_mirror("http://127.0.0.1:8787/");
         // Listed: found, even long after the sync.
@@ -1224,11 +1224,11 @@ mod tests {
     fn github_is_only_the_fallback_and_is_asked_rarely() {
         let github = CountingGitHub::default();
         let shared = shared();
-        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let word = datacrate360_launcher_core::catalog::fixtures::by_id("theta").unwrap();
         let feed = feed();
 
-        // The feed vouches for omni-agent: GitHub isn't asked.
+        // The feed vouches for countercheck: GitHub isn't asked.
         let (latest, _, used) = latest_for(photo, Some(&feed), LOADED, &github, &shared, false, false, NOW);
         assert!(matches!(latest, Some(LatestRelease::Found(ref r)) if r.tag == "v0.6.0"));
         assert_eq!(used, Some(Source::Feed));
@@ -1259,9 +1259,9 @@ mod tests {
         assert_eq!(used, Some(Source::GitHubApi));
     }
 
-    const APP: &str = "omni-agent";
+    const APP: &str = "countercheck";
 
-    /// A omni-agent release with one file per platform and format, so whichever this machine
+    /// A countercheck release with one file per platform and format, so whichever this machine
     /// installs is there.
     fn release(version: &str) -> Release {
         let suffixes = ["-portable.zip", ".tar.gz", ".msi", ".dmg", ".AppImage", ".deb", ".rpm", ".flatpak"];
@@ -1286,14 +1286,14 @@ mod tests {
         let msi = Installed {
             version: None,
             source: datacrate360_launcher_core::InstallSource::Msi,
-            location: r"C:\Apps\omni-agent\omni-agent.exe".into(),
+            location: r"C:\Apps\countercheck\countercheck.exe".into(),
             package: None,
         };
         assert_eq!(planned_asset(app, &release, platform, &portable_options, Some(&msi), None).unwrap().1, PackageKind::Msi);
         let launcher = Installed {
             version: None,
             source: datacrate360_launcher_core::InstallSource::Launcher,
-            location: r"D:\tools\omni-agent\omni-agent.exe".into(),
+            location: r"D:\tools\countercheck\countercheck.exe".into(),
             package: None,
         };
         let record = crate::manifest::Record {
@@ -1329,7 +1329,7 @@ mod tests {
         let existing = Installed {
             version: None,
             source: datacrate360_launcher_core::InstallSource::Deb,
-            location: "/usr/bin/omni-agent".into(),
+            location: "/usr/bin/countercheck".into(),
             package: None,
         };
         let system = BackendOptions { kinds: options.kinds.clone(), ..Default::default() };
@@ -1473,12 +1473,12 @@ mod tests {
     #[test]
     fn the_launcher_gives_up_waiting_and_names_the_busy_apps() {
         let jobs = Mutex::new(HashMap::new());
-        for id in [LAUNCHER_ID, "omni-agent"] {
+        for id in [LAUNCHER_ID, "countercheck"] {
             jobs.lock().unwrap().insert(id.to_string(), Arc::new(Stop::default()));
         }
         let restarting = AtomicBool::new(false);
         let error = claim_restart(&jobs, &restarting, &Stop::default(), Duration::from_millis(300), &mut || {}).unwrap_err();
-        assert!(error.contains("omni-agent was still installing") && error.contains("cancel it"), "{error}");
+        assert!(error.contains("Countercheck was still installing") && error.contains("cancel it"), "{error}");
         assert!(!restarting.load(Ordering::SeqCst));
         assert!(restart_blocked(vec!["Theta", "Gamma"]).contains("Gamma, Theta were still installing"));
     }
@@ -1486,7 +1486,7 @@ mod tests {
     #[test]
     fn the_launcher_restarts_only_once_every_other_job_has_ended() {
         let jobs = Mutex::new(HashMap::new());
-        for id in [LAUNCHER_ID, "omni-agent", "gamma"] {
+        for id in [LAUNCHER_ID, "countercheck", "gamma"] {
             jobs.lock().unwrap().insert(id.to_string(), Arc::new(Stop::default()));
         }
         let restarting = AtomicBool::new(false);
@@ -1497,7 +1497,7 @@ mod tests {
             let claim = scope.spawn(move || claim_restart(jobs, restarting, stop, RESTART_WAIT, &mut || waiting.send(()).unwrap()));
             waits.recv().unwrap();
             // One install ends; another is still running or queued.
-            jobs.lock().unwrap().remove("omni-agent");
+            jobs.lock().unwrap().remove("countercheck");
             std::thread::sleep(Duration::from_millis(250));
             assert!(!claim.is_finished() && !restarting.load(Ordering::SeqCst));
             jobs.lock().unwrap().remove("gamma");
@@ -1514,8 +1514,10 @@ mod tests {
 
     #[test]
     fn a_cancelled_launcher_update_stops_waiting_and_claims_nothing() {
-        let jobs =
-            Mutex::new(HashMap::from([(LAUNCHER_ID.to_string(), Arc::new(Stop::default())), ("omni-agent".to_string(), Arc::new(Stop::default()))]));
+        let jobs = Mutex::new(HashMap::from([
+            (LAUNCHER_ID.to_string(), Arc::new(Stop::default())),
+            ("countercheck".to_string(), Arc::new(Stop::default())),
+        ]));
         let restarting = AtomicBool::new(false);
         let stop = Stop::default();
         let (waiting, waits) = mpsc::channel();

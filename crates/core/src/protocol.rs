@@ -269,13 +269,13 @@ mod tests {
     #[test]
     fn install_folders_inherit_the_default_unless_the_app_has_an_override() {
         let mut locations = InstallLocations::default();
-        assert_eq!(locations.folder("omni-agent"), None);
+        assert_eq!(locations.folder("countercheck"), None);
         locations.root = Some("/Volumes/Tools".into());
-        locations.per_app.insert("omni-agent".into(), "/Volumes/Photo".into());
-        assert_eq!(locations.folder("omni-agent"), Some("/Volumes/Photo"));
+        locations.per_app.insert("countercheck".into(), "/Volumes/Photo".into());
+        assert_eq!(locations.folder("countercheck"), Some("/Volumes/Photo"));
         assert_eq!(locations.folder("gamma"), Some("/Volumes/Tools"));
-        locations.per_app.remove("omni-agent");
-        assert_eq!(locations.folder("omni-agent"), Some("/Volumes/Tools"));
+        locations.per_app.remove("countercheck");
+        assert_eq!(locations.folder("countercheck"), Some("/Volumes/Tools"));
     }
 
     #[test]

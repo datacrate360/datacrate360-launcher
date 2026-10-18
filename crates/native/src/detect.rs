@@ -72,8 +72,8 @@ fn from_manifest(app: &SuiteApp, manifest: &Manifest) -> Option<Installed> {
 
 /// Whether a file name is an AppImage of the app with asset stems `stems`, and the version its
 /// name gives. Matches only the names a release AppImage ends up with: the release's own
-/// (`omni-agent-0.6.0-linux-x86_64.AppImage`) and the bare app name Gear Lever renames it to
-/// (`omni-agent.appimage`, version unknown). The extension's case doesn't matter.
+/// (`countercheck-0.6.0-linux-x86_64.AppImage`) and the bare app name Gear Lever renames it to
+/// (`countercheck.appimage`, version unknown). The extension's case doesn't matter.
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub(crate) fn appimage_version(name: &str, stems: &[&str]) -> Option<Option<String>> {
     let split = name.len().checked_sub(".appimage".len())?;
@@ -109,7 +109,7 @@ fn exe_candidates(app: &SuiteApp, location: Option<&Path>, program_files: &[Path
     dirs.flat_map(|d| app.stems().map(move |s| d.join(format!("{s}.exe")))).collect()
 }
 
-/// Version from `<app> --version` output. Binaries print the machine id (`omni-agent 0.7.0`),
+/// Version from `<app> --version` output. Binaries print the machine id (`countercheck 0.7.0`),
 /// the display name (`Omega 0.5.0`), or a former id (`epsilonold 0.2.1` for Epsilon).
 #[cfg_attr(not(any(target_os = "linux", target_os = "freebsd")), allow(dead_code))]
 fn parse_cli_version(line: &str, app: &SuiteApp) -> Option<version::Version> {
@@ -457,8 +457,8 @@ mod linux_tests {
                     .any(|m| crate::packages::candidate_names(a, *m).iter().any(|n| n == name))
             })
         };
-        assert!(ours("omni-agent"));
-        assert!(ours("com.datacrate360.omni-agent"));
+        assert!(ours("countercheck"));
+        assert!(ours("com.datacrate360.countercheck"));
         assert!(!ours("unrelated-package"));
     }
 
@@ -472,10 +472,10 @@ mod linux_tests {
 
     #[test]
     fn reads_binary_version_from_cli() {
-        let photo = SuiteApp::by_id("omni-agent").unwrap();
+        let photo = SuiteApp::by_id("countercheck").unwrap();
         let temp_dir = tempfile::tempdir().unwrap();
-        let bin = temp_dir.path().join("omni-agent");
-        std::fs::write(&bin, "#!/bin/sh\necho 'omni-agent 0.6.0 (0c72d9542, 2026-10-10)'\n").unwrap();
+        let bin = temp_dir.path().join("countercheck");
+        std::fs::write(&bin, "#!/bin/sh\necho 'countercheck 0.6.0 (0c72d9542, 2026-10-10)'\n").unwrap();
         use std::os::unix::fs::PermissionsExt;
         std::fs::set_permissions(&bin, std::fs::Permissions::from_mode(0o755)).unwrap();
         let ver = linux::binary_version(&bin, photo);
@@ -526,7 +526,7 @@ mod tests {
             "epsilon-0.3.0-linux-x86_64.deb",
             "epsilon-0.3.0-windows-x64.AppImage",
             "epsilon-cli-0.3.0-linux-x86_64.AppImage",
-            "omni-agent-0.6.0-linux-x86_64.AppImage",
+            "countercheck-0.6.0-linux-x86_64.AppImage",
             "myepsilon.AppImage",
             "epsilon-latest.AppImage",
             ".appimage",
@@ -538,38 +538,38 @@ mod tests {
 
     #[test]
     fn parse_cli_version_accepts_id_display_name_and_former_id() {
-        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let sound = datacrate360_launcher_core::catalog::fixtures::by_id("omega").unwrap();
         let pdf = datacrate360_launcher_core::catalog::fixtures::by_id("epsilon").unwrap();
-        assert_eq!(parse_cli_version("omni-agent 0.7.0 (dev build)", photo).unwrap().to_string(), "0.7.0");
+        assert_eq!(parse_cli_version("countercheck 0.7.0 (dev build)", photo).unwrap().to_string(), "0.7.0");
         assert_eq!(parse_cli_version("Omega 0.5.0", sound).unwrap().to_string(), "0.5.0");
         assert_eq!(parse_cli_version("epsilonold 0.2.1", pdf).unwrap().to_string(), "0.2.1");
         assert_eq!(parse_cli_version("Epsilon 0.6.0", pdf).unwrap().to_string(), "0.6.0");
-        assert!(strip_cli_prefix("omni-agent-cli 1.0.0", "omni-agent").is_none());
+        assert!(strip_cli_prefix("countercheck-cli 1.0.0", "countercheck").is_none());
     }
 
     #[cfg(target_os = "linux")]
     #[test]
     fn finds_appimages_in_every_folder_newest_first() {
-        let app = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let app = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let root = tempfile::tempdir().unwrap();
         let (apps, gear, bin) = (root.path().join("Applications"), root.path().join("AppImages"), root.path().join("bin"));
         for d in [&apps, &gear, &bin] {
             std::fs::create_dir_all(d).unwrap();
         }
-        std::fs::write(apps.join("omni-agent-0.5.0-linux-x86_64.AppImage"), b"").unwrap();
+        std::fs::write(apps.join("countercheck-0.5.0-linux-x86_64.AppImage"), b"").unwrap();
         std::fs::write(apps.join("theta-0.3.0-linux-x86_64.AppImage"), b"").unwrap();
-        std::fs::write(gear.join("omni-agent.appimage"), b"").unwrap();
-        std::fs::write(bin.join("omni-agent-0.6.0-linux-x86_64.AppImage"), b"").unwrap();
-        std::fs::create_dir(bin.join("omni-agent.AppImage")).unwrap();
+        std::fs::write(gear.join("countercheck.appimage"), b"").unwrap();
+        std::fs::write(bin.join("countercheck-0.6.0-linux-x86_64.AppImage"), b"").unwrap();
+        std::fs::create_dir(bin.join("countercheck.AppImage")).unwrap();
         let found = linux::appimages_in(app, &[apps.clone(), gear.clone(), bin.clone(), root.path().join("missing")]);
         let names: Vec<_> = found.iter().map(|(p, v)| (p.clone(), v.as_ref().map(ToString::to_string))).collect();
         assert_eq!(
             names,
             [
-                (bin.join("omni-agent-0.6.0-linux-x86_64.AppImage"), Some("0.6.0".to_string())),
-                (apps.join("omni-agent-0.5.0-linux-x86_64.AppImage"), Some("0.5.0".to_string())),
-                (gear.join("omni-agent.appimage"), None),
+                (bin.join("countercheck-0.6.0-linux-x86_64.AppImage"), Some("0.6.0".to_string())),
+                (apps.join("countercheck-0.5.0-linux-x86_64.AppImage"), Some("0.5.0".to_string())),
+                (gear.join("countercheck.appimage"), None),
             ]
         );
     }
@@ -596,7 +596,7 @@ mod tests {
     fn epsilonold_entries_match_nothing_else() {
         let pdf = datacrate360_launcher_core::catalog::fixtures::by_id("epsilon").unwrap();
         assert!(!is_installer_entry(pdf, "EpsilonOld", "Some Other Publisher"));
-        assert!(!is_installer_entry(pdf, "omni-agent", PUBLISHER));
+        assert!(!is_installer_entry(pdf, "countercheck", PUBLISHER));
         for a in SUITE.iter().filter(|a| a.id != "epsilon") {
             assert!(!is_installer_entry(a, "EpsilonOld", PUBLISHER), "EpsilonOld matched {}", a.name);
         }

@@ -10,4 +10,4 @@ Terminal=false
 StartupNotify=true
 StartupWMClass=datacrate360-launcher
 Categories=Utility;PackageManager;
-Keywords=datacrate360;launcher;installer;updater;omni-agent;tools;
+Keywords=datacrate360;launcher;installer;updater;countercheck;tools;

@@ -65,8 +65,8 @@ fn events() -> Vec<Event> {
     for (i, app) in CATALOG.iter().enumerate() {
         let latest = LatestRelease::Found(release(app.id, "0.5.0", NOW - 40 * 86_400 - i as i64 * 600));
         ev.push(Event::Latest { app: app.id.into(), latest, from: Origin::FeedApi });
-        let installed = matches!(app.id, "omni-agent" | "delta").then(|| Installed {
-            version: version::parse(if app.id == "omni-agent" { "0.4.1" } else { "0.5.0" }),
+        let installed = matches!(app.id, "countercheck" | "delta").then(|| Installed {
+            version: version::parse(if app.id == "countercheck" { "0.4.1" } else { "0.5.0" }),
             source: InstallSource::MacApp,
             location: format!("/Applications/{}.app", app.name),
             package: None,

@@ -330,13 +330,13 @@ mod tests {
         std::fs::create_dir(&host).unwrap();
         let home = dir.path().join("home");
         symlink(&host, &home).unwrap();
-        let root = home.join("omni-agent");
+        let root = home.join("countercheck");
         assert!(validate_directory(&root).is_ok());
         assert!(validate_owned_directory(&root, &root).is_ok());
 
-        let app = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let app = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let paths = Paths::under(&home);
-        let zip = archive(dir.path(), "app.zip", &[("omni-agent.exe", b"program"), ("lib/runtime.dll", b"library")]);
+        let zip = archive(dir.path(), "app.zip", &[("countercheck.exe", b"program"), ("lib/runtime.dll", b"library")]);
         let record = install(app, &zip, "0.5.0", None, &paths, Some(&home), false, &mut |_| Ok(())).unwrap();
         assert_eq!(std::fs::read(&record.path).unwrap(), b"program");
 
@@ -373,43 +373,43 @@ mod tests {
         std::fs::create_dir(&first).unwrap();
         std::fs::create_dir(&second).unwrap();
         junction(&link, &first);
-        let alias_root = link.join("omni-agent");
+        let alias_root = link.join("countercheck");
         std::fs::create_dir(&alias_root).unwrap();
-        std::fs::write(alias_root.join("omni-agent.exe"), b"old program").unwrap();
+        std::fs::write(alias_root.join("countercheck.exe"), b"old program").unwrap();
         let record = Record {
             version: "0.5.0".into(),
             kind: PackageKind::PortableZip,
-            path: alias_root.join("omni-agent.exe"),
+            path: alias_root.join("countercheck.exe"),
             installed_at: 0,
-            files: vec![alias_root.join("omni-agent.exe")],
+            files: vec![alias_root.join("countercheck.exe")],
             needs_root: false,
         };
         std::process::Command::new("cmd.exe").args(["/C", "rmdir"]).arg(&link).status().unwrap();
         junction(&link, &second);
-        let foreign_root = link.join("omni-agent");
+        let foreign_root = link.join("countercheck");
         std::fs::create_dir(&foreign_root).unwrap();
-        std::fs::write(foreign_root.join("omni-agent.exe"), b"foreign program").unwrap();
-        assert!(remove(datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap(), &record).is_err());
-        assert_eq!(std::fs::read(foreign_root.join("omni-agent.exe")).unwrap(), b"foreign program");
+        std::fs::write(foreign_root.join("countercheck.exe"), b"foreign program").unwrap();
+        assert!(remove(datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap(), &record).is_err());
+        assert_eq!(std::fs::read(foreign_root.join("countercheck.exe")).unwrap(), b"foreign program");
     }
 
     #[test]
     fn upgrade_downgrade_and_uninstall_preserve_personal_files_and_location() {
         let dir = tempfile::tempdir().unwrap();
-        let app = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let app = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let paths = Paths::under(dir.path());
         let parent = dir.path().join("My Tools");
-        let first = archive(dir.path(), "first.zip", &[("omni-agent.exe", b"first"), ("obsolete.dll", b"old")]);
+        let first = archive(dir.path(), "first.zip", &[("countercheck.exe", b"first"), ("obsolete.dll", b"old")]);
         let mut record = install(app, &first, "0.5.0", None, &paths, Some(&parent), false, &mut |_| Ok(())).unwrap();
-        let personal = parent.join("omni-agent").join("settings.json");
+        let personal = parent.join("countercheck").join("settings.json");
         std::fs::write(&personal, b"personal").unwrap();
         for (version, exe) in [("0.6.0", b"new".as_slice()), ("0.4.0", b"older".as_slice())] {
-            let executable = if version == "0.4.0" { "Omni-Agent.exe" } else { "omni-agent.exe" };
+            let executable = if version == "0.4.0" { "Countercheck.exe" } else { "countercheck.exe" };
             let package = archive(dir.path(), "next.zip", &[(executable, exe), ("lib/runtime.dll", b"dll")]);
             record = install(app, &package, version, Some(&record), &paths, Some(&dir.path().join("Ignored")), false, &mut |_| Ok(())).unwrap();
             assert_eq!(std::fs::read(&record.path).unwrap(), exe);
             assert_eq!(record.path.parent().unwrap(), std::fs::canonicalize(personal.parent().unwrap()).unwrap());
-            assert!(!parent.join("omni-agent/obsolete.dll").exists());
+            assert!(!parent.join("countercheck/obsolete.dll").exists());
             assert_eq!(std::fs::read(&personal).unwrap(), b"personal");
             let mut manifest = crate::manifest::Manifest::default();
             manifest.apps.insert(app.id.into(), record.clone());
@@ -427,28 +427,28 @@ mod tests {
     #[test]
     fn a_failed_manifest_commit_restores_the_previous_program() {
         let dir = tempfile::tempdir().unwrap();
-        let app = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let app = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let paths = Paths::under(dir.path());
-        let old = archive(dir.path(), "old.zip", &[("omni-agent.exe", b"old"), ("lib.dll", b"library")]);
+        let old = archive(dir.path(), "old.zip", &[("countercheck.exe", b"old"), ("lib.dll", b"library")]);
         let record = install(app, &old, "0.5.0", None, &paths, None, false, &mut |_| Ok(())).unwrap();
-        let next = archive(dir.path(), "next.zip", &[("omni-agent.exe", b"new"), ("new.dll", b"new")]);
+        let next = archive(dir.path(), "next.zip", &[("countercheck.exe", b"new"), ("new.dll", b"new")]);
         let result = install(app, &next, "0.6.0", Some(&record), &paths, None, false, &mut |_| Err("manifest disk full".into()));
         assert_eq!(result.unwrap_err(), "manifest disk full");
         assert_eq!(std::fs::read(record.path).unwrap(), b"old");
-        assert_eq!(std::fs::read(paths.apps().join("omni-agent/lib.dll")).unwrap(), b"library");
-        assert!(!paths.apps().join("omni-agent/new.dll").exists());
+        assert_eq!(std::fs::read(paths.apps().join("countercheck/lib.dll")).unwrap(), b"library");
+        assert!(!paths.apps().join("countercheck/new.dll").exists());
     }
 
     #[test]
     fn collision_is_rejected_before_replacing_any_old_file() {
         let dir = tempfile::tempdir().unwrap();
-        let app = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let app = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let paths = Paths::under(dir.path());
-        let old = archive(dir.path(), "old.zip", &[("omni-agent.exe", b"old")]);
+        let old = archive(dir.path(), "old.zip", &[("countercheck.exe", b"old")]);
         let record = install(app, &old, "0.5.0", None, &paths, None, false, &mut |_| Ok(())).unwrap();
-        let personal = paths.apps().join("omni-agent/settings.json");
+        let personal = paths.apps().join("countercheck/settings.json");
         std::fs::write(&personal, b"keep").unwrap();
-        let next = archive(dir.path(), "next.zip", &[("omni-agent.exe", b"new"), ("settings.json", b"overwrite")]);
+        let next = archive(dir.path(), "next.zip", &[("countercheck.exe", b"new"), ("settings.json", b"overwrite")]);
         assert!(install(app, &next, "0.6.0", Some(&record), &paths, None, false, &mut |_| Ok(())).is_err());
         assert_eq!(std::fs::read(record.path).unwrap(), b"old");
         assert_eq!(std::fs::read(personal).unwrap(), b"keep");
@@ -457,17 +457,17 @@ mod tests {
     #[test]
     fn a_new_install_writes_over_unrecorded_files_only_when_asked_to() {
         let dir = tempfile::tempdir().unwrap();
-        let app = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let app = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let paths = Paths::under(dir.path());
-        let folder = paths.apps().join("omni-agent");
+        let folder = paths.apps().join("countercheck");
         std::fs::create_dir_all(&folder).unwrap();
-        std::fs::write(folder.join("omni-agent.exe"), b"theirs").unwrap();
+        std::fs::write(folder.join("countercheck.exe"), b"theirs").unwrap();
         std::fs::write(folder.join("notes.txt"), b"keep").unwrap();
-        let zip = archive(dir.path(), "new.zip", &[("omni-agent.exe", b"new")]);
+        let zip = archive(dir.path(), "new.zip", &[("countercheck.exe", b"new")]);
         assert!(install(app, &zip, "0.5.0", None, &paths, None, false, &mut |_| Ok(())).is_err());
-        assert_eq!(std::fs::read(folder.join("omni-agent.exe")).unwrap(), b"theirs");
+        assert_eq!(std::fs::read(folder.join("countercheck.exe")).unwrap(), b"theirs");
         install(app, &zip, "0.5.0", None, &paths, None, true, &mut |_| Ok(())).unwrap();
-        assert_eq!(std::fs::read(folder.join("omni-agent.exe")).unwrap(), b"new");
+        assert_eq!(std::fs::read(folder.join("countercheck.exe")).unwrap(), b"new");
         assert_eq!(std::fs::read(folder.join("notes.txt")).unwrap(), b"keep");
     }
 
@@ -477,7 +477,7 @@ mod tests {
         for (name, files) in [
             ("traversal.zip", vec![("../escape.exe", b"bad".as_slice())]),
             ("colon.zip", vec![("data:stream", b"bad".as_slice())]),
-            ("duplicate.zip", vec![("Omni-Agent.exe", b"one".as_slice()), ("omni-agent.exe", b"two".as_slice())]),
+            ("duplicate.zip", vec![("Countercheck.exe", b"one".as_slice()), ("countercheck.exe", b"two".as_slice())]),
         ] {
             let zip = archive(dir.path(), name, &files);
             let output = dir.path().join(name.replace('.', "-"));

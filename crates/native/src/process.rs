@@ -294,10 +294,10 @@ mod tests {
     fn running_paths_are_matched_literally() {
         let root = format!("/tmp/datacrate360-launcher-process-{}", std::process::id());
         for (actual, requested, expected) in [
-            ("plain/omni-agent.app", "plain/omni-agent.app", true),
-            ("Apps (work)/omni-agent.app", "Apps (work)/omni-agent.app", true),
-            ("Apps [work]/omni-agent.app", "Apps [work]/omni-agent.app", true),
-            ("other/omni-agentXapp", "other/omni-agent.app", false),
+            ("plain/countercheck.app", "plain/countercheck.app", true),
+            ("Apps (work)/countercheck.app", "Apps (work)/countercheck.app", true),
+            ("Apps [work]/countercheck.app", "Apps [work]/countercheck.app", true),
+            ("other/countercheckXapp", "other/countercheck.app", false),
             ("symbols/应用.^$*+?()[]{}|\\.app", "symbols/应用.^$*+?()[]{}|\\.app", true),
         ] {
             let actual = format!("{root}/{actual}");
@@ -340,20 +340,20 @@ mod explorer_tests {
 
     #[test]
     fn explorer_select_quotes_only_the_path() {
-        let arg = explorer_select_arg(Path::new(r"C:\Program Files\omni-agent\omni-agent.exe"));
-        assert_eq!(arg.unwrap(), r#"/select,"C:\Program Files\omni-agent\omni-agent.exe""#);
+        let arg = explorer_select_arg(Path::new(r"C:\Program Files\countercheck\countercheck.exe"));
+        assert_eq!(arg.unwrap(), r#"/select,"C:\Program Files\countercheck\countercheck.exe""#);
     }
 
     #[test]
     fn explorer_select_without_spaces() {
-        let arg = explorer_select_arg(Path::new(r"C:\Apps\omni-agent.exe"));
-        assert_eq!(arg.unwrap(), r#"/select,"C:\Apps\omni-agent.exe""#);
+        let arg = explorer_select_arg(Path::new(r"C:\Apps\countercheck.exe"));
+        assert_eq!(arg.unwrap(), r#"/select,"C:\Apps\countercheck.exe""#);
         assert_eq!(explorer_select_arg(Path::new(r#"C:\Apps" /root,C:\x.exe"#)), None);
     }
 
     #[test]
     fn explorer_select_uses_backslashes() {
-        let arg = explorer_select_arg(Path::new("C:/Users/A B/AppData/Local/DataCrate360 Launcher/apps/omni-agent.exe"));
-        assert_eq!(arg.unwrap(), r#"/select,"C:\Users\A B\AppData\Local\DataCrate360 Launcher\apps\omni-agent.exe""#);
+        let arg = explorer_select_arg(Path::new("C:/Users/A B/AppData/Local/DataCrate360 Launcher/apps/countercheck.exe"));
+        assert_eq!(arg.unwrap(), r#"/select,"C:\Users\A B\AppData\Local\DataCrate360 Launcher\apps\countercheck.exe""#);
     }
 }

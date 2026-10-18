@@ -69,7 +69,7 @@ fn release(id: &str, v: &str, at: i64) -> Release {
 fn events() -> Vec<Event> {
     let mut ev = Vec::new();
     let versions = [
-        ("omni-agent", "0.5.0"),
+        ("countercheck", "0.5.0"),
         ("beta", "0.7.0"),
         ("gamma", "0.4.0"),
         ("delta", "0.4.0"),
@@ -89,7 +89,7 @@ fn events() -> Vec<Event> {
         });
     }
     ev.push(Event::Latest { app: "omega".into(), latest: LatestRelease::None, from: Origin::FeedApi });
-    let installed = [("omni-agent", "0.4.1"), ("delta", "0.4.0"), ("theta", "0.3.0"), ("zeta", "0.5.0")];
+    let installed = [("countercheck", "0.4.1"), ("delta", "0.4.0"), ("theta", "0.3.0"), ("zeta", "0.5.0")];
     for app in &CATALOG {
         let inst = installed.iter().find(|(id, _)| *id == app.id).map(|(_, v)| Installed {
             version: version::parse(v),
@@ -187,7 +187,7 @@ fn simplified_chinese_switches_persists_and_keeps_install_actions() {
     h.get_by_label("全部更新（2）").click();
     h.run_steps(2);
     let installs: Vec<_> = sent.borrow().iter().filter_map(|c| if let Command::Install { app } = c { Some(app.clone()) } else { None }).collect();
-    assert_eq!(installs, ["omni-agent", "zeta"]);
+    assert_eq!(installs, ["countercheck", "zeta"]);
 
     let (mut table, _) = harness_language(ViewMode::Table, egui::Theme::Light, true, &restored.language);
     table.run_steps(6);

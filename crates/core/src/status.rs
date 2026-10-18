@@ -57,7 +57,7 @@ pub struct Installed {
     pub source: InstallSource,
     /// Where it lives: the `.app`, the exe, the AppImage, or the binary of a package.
     pub location: String,
-    /// The package that installed it, for package-manager installs (`omni-agent-bin`).
+    /// The package that installed it, for package-manager installs (`countercheck-bin`).
     #[serde(default)]
     pub package: Option<String>,
 }

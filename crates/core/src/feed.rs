@@ -450,16 +450,16 @@ mod tests {
         "success": true,
         "release_info": {{
           "apps": {{
-            "omni-agent": {{
-              "name": "omni-agent", "repo": "datacrate360/omni-agent",
+            "countercheck": {{
+              "name": "countercheck", "repo": "datacrate360/countercheck",
               "latest_release": {{
-                "tag": "v0.6.0", "version": "0.6.0", "name": "omni-agent v0.6.0",
+                "tag": "v0.6.0", "version": "0.6.0", "name": "countercheck v0.6.0",
                 "published_at": "2026-10-09T10:00:00Z",
-                "html_url": "https://github.com/datacrate360/omni-agent/releases/tag/v0.6.0",
+                "html_url": "https://github.com/datacrate360/countercheck/releases/tag/v0.6.0",
                 "prerelease": false, "notes_markdown": "Notes",
                 "assets": [
-                  {{ "name": "omni-agent-0.6.0-macos-universal.dmg", "size_bytes": 123,
-                     "download_url": "https://github.com/datacrate360/omni-agent/releases/download/v0.6.0/omni-agent-0.6.0-macos-universal.dmg",
+                  {{ "name": "countercheck-0.6.0-macos-universal.dmg", "size_bytes": 123,
+                     "download_url": "https://github.com/datacrate360/countercheck/releases/download/v0.6.0/countercheck-0.6.0-macos-universal.dmg",
                      "sha256": "{HASH}", "platform": {{ "os": "macos", "arch": "universal", "package_type": "dmg" }} }},
                   {{ "name": "evil.dmg", "size_bytes": 1, "download_url": "https://evil.example/evil.dmg", "sha256": null }}
                 ]
@@ -491,7 +491,7 @@ mod tests {
     fn uses_fresh_entries_and_falls_back_for_everything_else() {
         let feed = Feed::parse(&sample()).unwrap();
         // Fresh, with a release: only the download that belongs to the repo survives.
-        let FeedAnswer::Fresh(Some(r)) = feed.answer(app("omni-agent"), NOW) else { panic!() };
+        let FeedAnswer::Fresh(Some(r)) = feed.answer(app("countercheck"), NOW) else { panic!() };
         assert_eq!(r.version_label(), "0.6.0");
         assert_eq!(r.assets.len(), 1);
         assert_eq!(r.assets[0].sha256.as_deref(), Some(HASH));
@@ -516,12 +516,12 @@ mod tests {
             }
         }
         // Every field the wrong type: nothing panics, nothing is trusted.
-        let weird = r#"{"release_info": {"apps": {"omni-agent": {"repo": 7, "latest_release": "yes",
+        let weird = r#"{"release_info": {"apps": {"countercheck": {"repo": 7, "latest_release": "yes",
         "app_last_fetched": ["no"]}, "epsilon": 5}, "last_fetched": {}},
         "app_renames": "none", "repo_renames": [1, {"old_name": "a/b"}],
         "important_notices": {"announcements": [null, {"title": 3}], "alerts": "x"}}"#;
         let feed = Feed::parse(weird).unwrap();
-        assert_eq!(feed.answer(app("omni-agent"), NOW), FeedAnswer::AskGitHub);
+        assert_eq!(feed.answer(app("countercheck"), NOW), FeedAnswer::AskGitHub);
         assert!(feed.repo_renames.is_empty() && feed.announcements.is_empty() && feed.alerts.is_empty());
         // An empty object is a feed that knows nothing.
         assert_eq!(Feed::parse("{}").unwrap(), Feed::default());
@@ -532,22 +532,22 @@ mod tests {
         let moved = sample()
             .replace(
                 "\"repo_renames\": []",
-                r#""repo_renames": [{"old_name": "Datacrate360/omni-agent", "new_name": "datacrate360/omni-agent-app", "renamed_at": null}]"#,
+                r#""repo_renames": [{"old_name": "Datacrate360/countercheck", "new_name": "datacrate360/countercheck-app", "renamed_at": null}]"#,
             )
             .replace(
-                "\"name\": \"omni-agent\", \"repo\": \"datacrate360/omni-agent\"",
-                "\"name\": \"omni-agent\", \"repo\": \"datacrate360/omni-agent-app\"",
+                "\"name\": \"countercheck\", \"repo\": \"datacrate360/countercheck\"",
+                "\"name\": \"countercheck\", \"repo\": \"datacrate360/countercheck-app\"",
             )
-            .replace("github.com/datacrate360/omni-agent/releases", "github.com/datacrate360/omni-agent-app/releases");
+            .replace("github.com/datacrate360/countercheck/releases", "github.com/datacrate360/countercheck-app/releases");
         let feed = Feed::parse(&moved).unwrap();
-        assert_eq!(feed.repo_for(app("omni-agent")), "datacrate360/omni-agent-app");
-        let FeedAnswer::Fresh(Some(r)) = feed.answer(app("omni-agent"), NOW) else { panic!() };
-        assert!(r.assets[0].url.starts_with("https://github.com/datacrate360/omni-agent-app/releases/download/"));
+        assert_eq!(feed.repo_for(app("countercheck")), "datacrate360/countercheck-app");
+        let FeedAnswer::Fresh(Some(r)) = feed.answer(app("countercheck"), NOW) else { panic!() };
+        assert!(r.assets[0].url.starts_with("https://github.com/datacrate360/countercheck-app/releases/download/"));
         // The same entry without the rename: the repo doesn't match, so GitHub decides.
         let unannounced =
-            moved.replace(r#"{"old_name": "Datacrate360/omni-agent", "new_name": "datacrate360/omni-agent-app", "renamed_at": null}"#, "");
+            moved.replace(r#"{"old_name": "Datacrate360/countercheck", "new_name": "datacrate360/countercheck-app", "renamed_at": null}"#, "");
         let feed = Feed::parse(&unannounced).unwrap();
-        assert_eq!(feed.answer(app("omni-agent"), NOW), FeedAnswer::AskGitHub);
+        assert_eq!(feed.answer(app("countercheck"), NOW), FeedAnswer::AskGitHub);
     }
 
     #[test]
@@ -557,35 +557,35 @@ mod tests {
         let moved = sample()
             .replace(
                 "\"repo_renames\": []",
-                r#""repo_renames": [{"old_name": "datacrate360/omni-agent", "new_name": "art/omni-agent", "renamed_at": null},
-                                  {"old_name": "art/omni-agent", "new_name": "datacrate360/omni-agent", "renamed_at": null},
-                                  {"old_name": "datacrate360/omni-agent", "new_name": "datacrate360.evil.example/omni-agent", "renamed_at": null}]"#,
+                r#""repo_renames": [{"old_name": "datacrate360/countercheck", "new_name": "art/countercheck", "renamed_at": null},
+                                  {"old_name": "art/countercheck", "new_name": "datacrate360/countercheck", "renamed_at": null},
+                                  {"old_name": "datacrate360/countercheck", "new_name": "datacrate360.evil.example/countercheck", "renamed_at": null}]"#,
             )
-            .replace("\"name\": \"omni-agent\", \"repo\": \"datacrate360/omni-agent\"", "\"name\": \"omni-agent\", \"repo\": \"art/omni-agent\"")
-            .replace("github.com/datacrate360/omni-agent/releases", "github.com/art/omni-agent/releases");
+            .replace("\"name\": \"countercheck\", \"repo\": \"datacrate360/countercheck\"", "\"name\": \"countercheck\", \"repo\": \"art/countercheck\"")
+            .replace("github.com/datacrate360/countercheck/releases", "github.com/art/countercheck/releases");
         let feed = Feed::parse(&moved).unwrap();
         assert!(feed.repo_renames.is_empty(), "{:?}", feed.repo_renames);
-        assert_eq!(feed.repo_for(app("omni-agent")), "datacrate360/omni-agent");
-        assert_eq!(feed.answer(app("omni-agent"), NOW), FeedAnswer::AskGitHub);
+        assert_eq!(feed.repo_for(app("countercheck")), "datacrate360/countercheck");
+        assert_eq!(feed.answer(app("countercheck"), NOW), FeedAnswer::AskGitHub);
     }
 
     #[test]
     fn a_local_mirror_is_trusted_only_when_asked_for_and_never_goes_stale() {
         const MIRROR: &str = "http://127.0.0.1:8787/";
         let local =
-            sample().replace("https://github.com/datacrate360/omni-agent/releases/download/v0.6.0/", "http://127.0.0.1:8787/omni-agent/v0.6.0/");
+            sample().replace("https://github.com/datacrate360/countercheck/releases/download/v0.6.0/", "http://127.0.0.1:8787/countercheck/v0.6.0/");
         // Without the mirror, the local link is dropped like any other stranger's.
-        let FeedAnswer::Fresh(Some(r)) = Feed::parse(&local).unwrap().answer(app("omni-agent"), NOW) else { panic!() };
+        let FeedAnswer::Fresh(Some(r)) = Feed::parse(&local).unwrap().answer(app("countercheck"), NOW) else { panic!() };
         assert!(r.assets.is_empty());
         let feed = Feed::parse(&local).unwrap().with_mirror(MIRROR);
-        let FeedAnswer::Fresh(Some(r)) = feed.answer(app("omni-agent"), NOW) else { panic!() };
+        let FeedAnswer::Fresh(Some(r)) = feed.answer(app("countercheck"), NOW) else { panic!() };
         assert_eq!(r.assets.len(), 1, "the mirror's file is kept, evil.example's still isn't");
-        assert_eq!(r.assets[0].url, "http://127.0.0.1:8787/omni-agent/v0.6.0/omni-agent-0.6.0-macos-universal.dmg");
+        assert_eq!(r.assets[0].url, "http://127.0.0.1:8787/countercheck/v0.6.0/countercheck-0.6.0-macos-universal.dmg");
         // A week-old sync still counts.
-        assert!(matches!(feed.answer(app("omni-agent"), NOW + 7 * 86_400), FeedAnswer::Fresh(Some(_))));
+        assert!(matches!(feed.answer(app("countercheck"), NOW + 7 * 86_400), FeedAnswer::Fresh(Some(_))));
         // Escaping the mirror's folder isn't allowed, and a base without its trailing slash isn't a mirror.
-        let escaping = local.replace("http://127.0.0.1:8787/omni-agent/", "http://127.0.0.1:8787/../omni-agent/");
-        let FeedAnswer::Fresh(Some(r)) = Feed::parse(&escaping).unwrap().with_mirror(MIRROR).answer(app("omni-agent"), NOW) else { panic!() };
+        let escaping = local.replace("http://127.0.0.1:8787/countercheck/", "http://127.0.0.1:8787/../countercheck/");
+        let FeedAnswer::Fresh(Some(r)) = Feed::parse(&escaping).unwrap().with_mirror(MIRROR).answer(app("countercheck"), NOW) else { panic!() };
         assert!(r.assets.is_empty());
         assert_eq!(Feed::default().with_mirror("http://127.0.0.1:8787").mirror, None);
     }
@@ -599,7 +599,7 @@ mod tests {
         let json = std::fs::read_to_string(path).unwrap();
         let feed = Feed::parse(&json).unwrap();
         let now = feed.last_fetched.unwrap();
-        for app in [app("omni-agent"), &LAUNCHER] {
+        for app in [app("countercheck"), &LAUNCHER] {
             let FeedAnswer::Fresh(Some(r)) = feed.answer(app, now) else { panic!("{} wasn't fresh", app.id) };
             assert!(r.version.is_some(), "{}", app.id);
             assert!(!r.assets.is_empty() && r.assets.iter().all(|a| a.sha256.is_some()), "{}", app.id);

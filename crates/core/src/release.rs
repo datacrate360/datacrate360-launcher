@@ -24,7 +24,7 @@ pub struct Asset {
 pub struct Release {
     pub tag: String,
     pub version: Option<Version>,
-    /// `omni-agent v0.5.0`
+    /// `countercheck v0.5.0`
     pub name: String,
     /// Unix seconds; `None` when only the tag is known.
     pub published_at: Option<i64>,
@@ -193,26 +193,26 @@ fn truncate(s: &str, max: usize) -> String {
 mod tests {
     use super::*;
 
-    const REPO: &str = "datacrate360/omni-agent";
+    const REPO: &str = "datacrate360/countercheck";
     const HASH: &str = "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1";
 
     fn api_json(url: &str) -> String {
         format!(
-            r#"{{"tag_name":"v0.5.0","name":"omni-agent v0.5.0","html_url":"https://github.com/datacrate360/omni-agent/releases/tag/v0.5.0",
+            r#"{{"tag_name":"v0.5.0","name":"countercheck v0.5.0","html_url":"https://github.com/datacrate360/countercheck/releases/tag/v0.5.0",
             "published_at":"2026-10-08T14:52:50Z","prerelease":false,"body":"Notes",
-            "assets":[{{"name":"omni-agent-0.5.0-macos-universal.dmg","size":123,"browser_download_url":"{url}","digest":"sha256:{HASH}"}}]}}"#
+            "assets":[{{"name":"countercheck-0.5.0-macos-universal.dmg","size":123,"browser_download_url":"{url}","digest":"sha256:{HASH}"}}]}}"#
         )
     }
 
     #[test]
     fn reads_the_latest_release() {
         let r = parse_github_release(
-            &api_json("https://github.com/datacrate360/omni-agent/releases/download/v0.5.0/omni-agent-0.5.0-macos-universal.dmg"),
+            &api_json("https://github.com/datacrate360/countercheck/releases/download/v0.5.0/countercheck-0.5.0-macos-universal.dmg"),
             REPO,
         )
         .unwrap();
         assert_eq!(r.version, Some(Version::new(0, 5, 0)));
-        assert_eq!(r.name, "omni-agent v0.5.0");
+        assert_eq!(r.name, "countercheck v0.5.0");
         assert_eq!(r.published_at, Some(1_791_471_170));
         assert_eq!(r.assets.len(), 1);
         assert_eq!(r.assets[0].sha256.as_deref(), Some(HASH));
@@ -221,7 +221,8 @@ mod tests {
 
     #[test]
     fn drops_downloads_that_point_elsewhere() {
-        for url in ["https://evil.example/omni-agent.dmg", "https://github.com/datacrate360/other/releases/download/v1/x.dmg", "javascript:alert(1)"]
+        for url in
+            ["https://evil.example/countercheck.dmg", "https://github.com/datacrate360/other/releases/download/v1/x.dmg", "javascript:alert(1)"]
         {
             let r = parse_github_release(&api_json(url), REPO).unwrap();
             assert!(r.assets.is_empty(), "{url}");
@@ -245,13 +246,13 @@ mod tests {
 
     #[test]
     fn reads_checksums_and_redirects() {
-        let sums = parse_sha256sums(&format!("{HASH}  omni-agent-0.5.0-macos-universal.dmg\n{HASH} *b.zip\nnot a line\n{HASH}  ../escape\n"));
-        assert_eq!(sums, [(HASH.to_string(), "omni-agent-0.5.0-macos-universal.dmg".to_string()), (HASH.to_string(), "b.zip".to_string())]);
-        assert_eq!(tag_from_redirect("https://github.com/datacrate360/omni-agent/releases/tag/v0.5.0", REPO).as_deref(), Some("v0.5.0"));
-        assert_eq!(tag_from_redirect("https://github.com/datacrate360/omni-agent/releases", REPO), None);
-        assert_eq!(tag_from_redirect("https://evil/datacrate360/omni-agent/releases/tag/v1", REPO), None);
+        let sums = parse_sha256sums(&format!("{HASH}  countercheck-0.5.0-macos-universal.dmg\n{HASH} *b.zip\nnot a line\n{HASH}  ../escape\n"));
+        assert_eq!(sums, [(HASH.to_string(), "countercheck-0.5.0-macos-universal.dmg".to_string()), (HASH.to_string(), "b.zip".to_string())]);
+        assert_eq!(tag_from_redirect("https://github.com/datacrate360/countercheck/releases/tag/v0.5.0", REPO).as_deref(), Some("v0.5.0"));
+        assert_eq!(tag_from_redirect("https://github.com/datacrate360/countercheck/releases", REPO), None);
+        assert_eq!(tag_from_redirect("https://evil/datacrate360/countercheck/releases/tag/v1", REPO), None);
         let r = release_from_sums(REPO, "v0.5.0", &sums);
-        assert_eq!(r.assets[0].url, "https://github.com/datacrate360/omni-agent/releases/download/v0.5.0/omni-agent-0.5.0-macos-universal.dmg");
+        assert_eq!(r.assets[0].url, "https://github.com/datacrate360/countercheck/releases/download/v0.5.0/countercheck-0.5.0-macos-universal.dmg");
         assert_eq!(r.version, Some(Version::new(0, 5, 0)));
     }
 
@@ -260,6 +261,6 @@ mod tests {
         for bad in ["", "..", "a/b", "a\\b", ".hidden", "c:x", "x\u{0}"] {
             assert!(!valid_file_name(bad), "{bad:?}");
         }
-        assert!(valid_file_name("omni-agent-0.5.0-linux-x86_64.AppImage"));
+        assert!(valid_file_name("countercheck-0.5.0-linux-x86_64.AppImage"));
     }
 }

@@ -9,7 +9,7 @@ use datacrate360_launcher_core::{InstallSource, SuiteApp, version};
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Package {
     pub manager: InstallSource,
-    /// The package's name (`omni-agent-bin`) or Flatpak app id.
+    /// The package's name (`countercheck-bin`) or Flatpak app id.
     pub name: String,
     /// As the package manager reports it (`0.5.0-1`); empty when it doesn't say.
     pub version: String,
@@ -64,9 +64,9 @@ pub fn parse_flatpak_info(text: &str) -> Option<String> {
 }
 
 /// The package names a tool may be installed under with `manager`. On Arch the AUR carries
-/// each app three ways: built from source (`omni-agent`), the release binary (`omni-agent-bin`)
-/// and the latest commit (`omni-agent-git`). Debian and RPM packages may use either the short stem
-/// (`omni-agent`) or the reverse-DNS bundle id (`com.datacrate360.omni-agent`).
+/// each app three ways: built from source (`countercheck`), the release binary (`countercheck-bin`)
+/// and the latest commit (`countercheck-git`). Debian and RPM packages may use either the short stem
+/// (`countercheck`) or the reverse-DNS bundle id (`com.datacrate360.countercheck`).
 pub fn candidate_names(app: &SuiteApp, manager: InstallSource) -> Vec<String> {
     match manager {
         InstallSource::Flatpak => vec![app.bundle_id()],
@@ -102,11 +102,11 @@ mod tests {
     #[test]
     fn reads_each_package_managers_listing() {
         assert_eq!(
-            parse_dpkg("omni-agent|installed|0.5.0-1\nomni-agent:amd64|installed|0.6.0-1\ntheta|config-files|0.3.0-1\n"),
-            [("omni-agent".into(), "0.5.0-1".into()), ("omni-agent".into(), "0.6.0-1".into())]
+            parse_dpkg("countercheck|installed|0.5.0-1\ncountercheck:amd64|installed|0.6.0-1\ntheta|config-files|0.3.0-1\n"),
+            [("countercheck".into(), "0.5.0-1".into()), ("countercheck".into(), "0.6.0-1".into())]
         );
         assert_eq!(parse_rpm("lambda|0.3.0\n"), [("lambda".into(), "0.3.0".into())]);
-        assert_eq!(parse_pacman("omni-agent-bin 0.5.0-1\nlinux 6.11.1.arch1-1\n").len(), 2);
+        assert_eq!(parse_pacman("countercheck-bin 0.5.0-1\nlinux 6.11.1.arch1-1\n").len(), 2);
         assert_eq!(
             parse_flatpak_list("com.datacrate360.theta\t\ncom.datacrate360.sigma\t0.3.0\n"),
             [("com.datacrate360.theta".into(), String::new()), ("com.datacrate360.sigma".into(), "0.3.0".into())]
@@ -118,29 +118,29 @@ mod tests {
 
     #[test]
     fn candidate_names_cover_bundle_ids_for_deb_rpm_and_pacman() {
-        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let deb_names = candidate_names(photo, InstallSource::Deb);
-        assert!(deb_names.contains(&"omni-agent".to_string()));
-        assert!(deb_names.contains(&"com.datacrate360.omni-agent".to_string()));
+        assert!(deb_names.contains(&"countercheck".to_string()));
+        assert!(deb_names.contains(&"com.datacrate360.countercheck".to_string()));
 
         let rpm_names = candidate_names(photo, InstallSource::Rpm);
-        assert!(rpm_names.contains(&"omni-agent".to_string()));
-        assert!(rpm_names.contains(&"com.datacrate360.omni-agent".to_string()));
+        assert!(rpm_names.contains(&"countercheck".to_string()));
+        assert!(rpm_names.contains(&"com.datacrate360.countercheck".to_string()));
 
         let pacman_names = candidate_names(photo, InstallSource::Pacman);
-        assert!(pacman_names.contains(&"omni-agent".to_string()));
-        assert!(pacman_names.contains(&"omni-agent-bin".to_string()));
-        assert!(pacman_names.contains(&"com.datacrate360.omni-agent".to_string()));
+        assert!(pacman_names.contains(&"countercheck".to_string()));
+        assert!(pacman_names.contains(&"countercheck-bin".to_string()));
+        assert!(pacman_names.contains(&"com.datacrate360.countercheck".to_string()));
     }
 
     #[test]
     fn finds_aur_packages_in_every_flavour() {
-        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
         let pdf = datacrate360_launcher_core::catalog::fixtures::by_id("epsilon").unwrap();
         let installed =
-            pkgs(InstallSource::Pacman, parse_pacman("linux 6.11.1.arch1-1\nomni-agent-git 0.3.0.r47.g47f9306-1\nepsilonold-bin 0.2.1-1\n"));
+            pkgs(InstallSource::Pacman, parse_pacman("linux 6.11.1.arch1-1\ncountercheck-git 0.3.0.r47.g47f9306-1\nepsilonold-bin 0.2.1-1\n"));
         let hit = find(photo, &installed, &[InstallSource::Pacman]).unwrap();
-        assert_eq!(hit.name, "omni-agent-git");
+        assert_eq!(hit.name, "countercheck-git");
         assert_eq!(version_of(hit).unwrap().to_string(), "0.3.0");
         // Epsilon under its old name.
         assert_eq!(find(pdf, &installed, &[InstallSource::Pacman]).unwrap().name, "epsilonold-bin");
@@ -149,9 +149,9 @@ mod tests {
 
     #[test]
     fn prefers_managers_in_order_and_reads_revisions() {
-        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
-        let mut installed = pkgs(InstallSource::Deb, parse_dpkg("omni-agent|installed|0.5.0-1\n"));
-        installed.extend(pkgs(InstallSource::Flatpak, parse_flatpak_list("com.datacrate360.omni-agent\t0.4.0\n")));
+        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("countercheck").unwrap();
+        let mut installed = pkgs(InstallSource::Deb, parse_dpkg("countercheck|installed|0.5.0-1\n"));
+        installed.extend(pkgs(InstallSource::Flatpak, parse_flatpak_list("com.datacrate360.countercheck\t0.4.0\n")));
         let hit = find(photo, &installed, &[InstallSource::Deb, InstallSource::Flatpak]).unwrap();
         assert_eq!(hit.manager, InstallSource::Deb);
         // 0.5.0-1 is the 0.5.0 release, not a pre-release of it.

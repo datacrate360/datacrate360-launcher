@@ -141,7 +141,7 @@
 	Tarball (.tar.gz)	Arquivo (.tar.gz)
 
 # Contextual: each app's tagline, keyed by app id
-omni-agent	Proof that AI work really happened	Prova de que o trabalho da IA realmente aconteceu
+countercheck	Proof that AI work really happened	Prova de que o trabalho da IA realmente aconteceu
 
 # Contextual: month abbreviations for date rendering
 month	Jan	jan.

@@ -13,7 +13,7 @@
 # Coverage: the whole interface — every menu string and tl! literal (complete_menus = true).
 # Left in English on purpose: product name "DataCrate360 Launcher" (and its "Launcher" tag), suite
 # name "DataCrate360 tools",
-# app names (omni-agent), "GitHub".
+# app names (countercheck), "GitHub".
 # Shortcut keys keep their key-cap names (Shift, Alt, Ctrl, Cmd, Esc).
 # Trailing "…" (U+2026) must be preserved. Placeholders {name}, {n}, {version}, {count}, {v},
 # {what}, {unit}, {real}, {e} must appear in translation.
@@ -153,7 +153,7 @@
 	Tarball (.tar.gz)	Tar-Archiv (.tar.gz)
 
 # Contextual: each app's tagline, keyed by app id
-omni-agent	Proof that AI work really happened	Der Nachweis, dass KI-Arbeit wirklich stattgefunden hat
+countercheck	Proof that AI work really happened	Der Nachweis, dass KI-Arbeit wirklich stattgefunden hat
 
 # Contextual: month abbreviations for date rendering
 month	Jan	Jan.
