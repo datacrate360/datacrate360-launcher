@@ -477,7 +477,7 @@ mod tests {
         for (name, files) in [
             ("traversal.zip", vec![("../escape.exe", b"bad".as_slice())]),
             ("colon.zip", vec![("data:stream", b"bad".as_slice())]),
-            ("duplicate.zip", vec![("omni-agent.exe", b"one".as_slice()), ("omni-agent.exe", b"two".as_slice())]),
+            ("duplicate.zip", vec![("Omni-Agent.exe", b"one".as_slice()), ("omni-agent.exe", b"two".as_slice())]),
         ] {
             let zip = archive(dir.path(), name, &files);
             let output = dir.path().join(name.replace('.', "-"));
