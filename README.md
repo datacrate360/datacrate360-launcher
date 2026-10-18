@@ -20,8 +20,10 @@ Today the catalog has one tool:
 |---|---|---|
 | **Countercheck** | Proof that AI work really happened | [`datacrate360/countercheck`](https://github.com/datacrate360/countercheck) |
 
-Countercheck has no published release yet, so the launcher shows it as **Coming soon** until one
-appears. Adding a tool is one row in [`crates/core/src/catalog.rs`](crates/core/src/catalog.rs)
+Countercheck v0.1.0 is released as a command-line tool (`.tar.gz`, pip, Homebrew). The launcher
+installs app packages (`.dmg`, AppImage, `.msi`), so until it supports command-line tools it shows
+Countercheck as **Coming soon**; install it with `pip install countercheck` or
+`brew install datacrate360/tap/countercheck` (see its README). Adding a tool is one row in [`crates/core/src/catalog.rs`](crates/core/src/catalog.rs)
 (plus its tagline in each UI catalog).
 
 ### Safety
@@ -87,7 +89,7 @@ a macOS disk image yourself:
 
 ```sh
 packaging/macos/package.sh --arch aarch64   # or universal; ad-hoc signed without MACOS_SIGN_IDENTITY
-open dist/release/datacrate360-launcher-0.4.1-macos-aarch64.dmg
+open dist/release/datacrate360-launcher-0.1.0-macos-aarch64.dmg
 ```
 
 An ad-hoc signed build runs on the Mac that built it; other Macs' Gatekeeper rejects it until it is
