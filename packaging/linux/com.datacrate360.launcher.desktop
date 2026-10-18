@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Name=DataCrate360 Launcher
+GenericName=App Launcher
+Comment=Install, update and launch the DataCrate360 tools
+Exec=datacrate360-launcher
+TryExec=datacrate360-launcher
+Icon=com.datacrate360.launcher
+Terminal=false
+StartupNotify=true
+StartupWMClass=datacrate360-launcher
+Categories=Utility;PackageManager;
+Keywords=datacrate360;launcher;installer;updater;omni-agent;tools;

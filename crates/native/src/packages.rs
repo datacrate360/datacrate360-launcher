@@ -1,0 +1,161 @@
+//! Reading system package lists (dpkg, rpm, pacman, Flatpak) and matching them to tools.
+//!
+//! Pure functions over the tools' text output, so they're tested on every platform; only Linux
+//! runs the tools (`detect::linux`).
+
+use datacrate360_launcher_core::{InstallSource, SuiteApp, version};
+
+/// One installed package that belongs to a tool.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Package {
+    pub manager: InstallSource,
+    /// The package's name (`omni-agent-bin`) or Flatpak app id.
+    pub name: String,
+    /// As the package manager reports it (`0.5.0-1`); empty when it doesn't say.
+    pub version: String,
+}
+
+/// `dpkg-query -W -f '${Package}|${db:Status-Status}|${Version}\n'`: installed packages only.
+pub fn parse_dpkg(text: &str) -> Vec<(String, String)> {
+    text.lines()
+        .filter_map(|line| {
+            let mut f = line.split('|');
+            match (f.next(), f.next(), f.next()) {
+                (Some(name), Some("installed"), Some(ver)) => {
+                    let name = name.split_once(':').map(|(n, _)| n).unwrap_or(name);
+                    Some((name.to_string(), ver.to_string()))
+                }
+                _ => None,
+            }
+        })
+        .collect()
+}
+
+/// `rpm -qa --qf '%{NAME}|%{VERSION}\n'`.
+pub fn parse_rpm(text: &str) -> Vec<(String, String)> {
+    text.lines().filter_map(|line| line.split_once('|').map(|(n, v)| (n.to_string(), v.to_string()))).collect()
+}
+
+/// `pacman -Q`: `name version` per line.
+pub fn parse_pacman(text: &str) -> Vec<(String, String)> {
+    text.lines()
+        .filter_map(|line| {
+            let mut f = line.split_whitespace();
+            Some((f.next()?.to_string(), f.next()?.to_string()))
+        })
+        .collect()
+}
+
+/// `flatpak list --app --columns=application,version`: the version column is often empty for
+/// bundles built from a release tarball.
+pub fn parse_flatpak_list(text: &str) -> Vec<(String, String)> {
+    text.lines()
+        .filter_map(|line| {
+            let mut f = line.split('\t');
+            let id = f.next()?.trim();
+            (!id.is_empty()).then(|| (id.to_string(), f.next().unwrap_or("").trim().to_string()))
+        })
+        .collect()
+}
+
+/// The `Version:` line of `flatpak info <id>`.
+pub fn parse_flatpak_info(text: &str) -> Option<String> {
+    text.lines().find_map(|l| l.trim().strip_prefix("Version:").map(|v| v.trim().to_string())).filter(|v| !v.is_empty())
+}
+
+/// The package names a tool may be installed under with `manager`. On Arch the AUR carries
+/// each app three ways: built from source (`omni-agent`), the release binary (`omni-agent-bin`)
+/// and the latest commit (`omni-agent-git`). Debian and RPM packages may use either the short stem
+/// (`omni-agent`) or the reverse-DNS bundle id (`com.datacrate360.omni-agent`).
+pub fn candidate_names(app: &SuiteApp, manager: InstallSource) -> Vec<String> {
+    match manager {
+        InstallSource::Flatpak => vec![app.bundle_id()],
+        InstallSource::Pacman => {
+            app.stems().flat_map(|s| [s.to_string(), format!("{s}-bin"), format!("{s}-git")]).chain(std::iter::once(app.bundle_id())).collect()
+        }
+        InstallSource::Deb | InstallSource::Rpm => app.stems().map(str::to_string).chain(std::iter::once(app.bundle_id())).collect(),
+        _ => app.stems().map(str::to_string).collect(),
+    }
+}
+
+/// The package of `app` among `installed`, preferring the manager listed first in `order`.
+pub fn find<'a>(app: &SuiteApp, installed: &'a [Package], order: &[InstallSource]) -> Option<&'a Package> {
+    order.iter().find_map(|manager| {
+        let names = candidate_names(app, *manager);
+        names.iter().find_map(|n| installed.iter().find(|p| p.manager == *manager && p.name == *n))
+    })
+}
+
+/// A package's version, read the package-manager way (`0.5.0-1` is 0.5.0).
+pub fn version_of(p: &Package) -> Option<version::Version> {
+    version::parse_package(&p.version)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn pkgs(manager: InstallSource, list: Vec<(String, String)>) -> Vec<Package> {
+        list.into_iter().map(|(name, version)| Package { manager, name, version }).collect()
+    }
+
+    #[test]
+    fn reads_each_package_managers_listing() {
+        assert_eq!(
+            parse_dpkg("omni-agent|installed|0.5.0-1\nomni-agent:amd64|installed|0.6.0-1\ntheta|config-files|0.3.0-1\n"),
+            [("omni-agent".into(), "0.5.0-1".into()), ("omni-agent".into(), "0.6.0-1".into())]
+        );
+        assert_eq!(parse_rpm("lambda|0.3.0\n"), [("lambda".into(), "0.3.0".into())]);
+        assert_eq!(parse_pacman("omni-agent-bin 0.5.0-1\nlinux 6.11.1.arch1-1\n").len(), 2);
+        assert_eq!(
+            parse_flatpak_list("com.datacrate360.theta\t\ncom.datacrate360.sigma\t0.3.0\n"),
+            [("com.datacrate360.theta".into(), String::new()), ("com.datacrate360.sigma".into(), "0.3.0".into())]
+        );
+        let info = "\nTheta - Word processor\n\n          ID: com.datacrate360.theta\n     Version: 0.3.0\n      Branch: master\n";
+        assert_eq!(parse_flatpak_info(info).as_deref(), Some("0.3.0"));
+        assert_eq!(parse_flatpak_info("Version: \n"), None);
+    }
+
+    #[test]
+    fn candidate_names_cover_bundle_ids_for_deb_rpm_and_pacman() {
+        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let deb_names = candidate_names(photo, InstallSource::Deb);
+        assert!(deb_names.contains(&"omni-agent".to_string()));
+        assert!(deb_names.contains(&"com.datacrate360.omni-agent".to_string()));
+
+        let rpm_names = candidate_names(photo, InstallSource::Rpm);
+        assert!(rpm_names.contains(&"omni-agent".to_string()));
+        assert!(rpm_names.contains(&"com.datacrate360.omni-agent".to_string()));
+
+        let pacman_names = candidate_names(photo, InstallSource::Pacman);
+        assert!(pacman_names.contains(&"omni-agent".to_string()));
+        assert!(pacman_names.contains(&"omni-agent-bin".to_string()));
+        assert!(pacman_names.contains(&"com.datacrate360.omni-agent".to_string()));
+    }
+
+    #[test]
+    fn finds_aur_packages_in_every_flavour() {
+        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let pdf = datacrate360_launcher_core::catalog::fixtures::by_id("epsilon").unwrap();
+        let installed =
+            pkgs(InstallSource::Pacman, parse_pacman("linux 6.11.1.arch1-1\nomni-agent-git 0.3.0.r47.g47f9306-1\nepsilonold-bin 0.2.1-1\n"));
+        let hit = find(photo, &installed, &[InstallSource::Pacman]).unwrap();
+        assert_eq!(hit.name, "omni-agent-git");
+        assert_eq!(version_of(hit).unwrap().to_string(), "0.3.0");
+        // Epsilon under its old name.
+        assert_eq!(find(pdf, &installed, &[InstallSource::Pacman]).unwrap().name, "epsilonold-bin");
+        assert!(find(datacrate360_launcher_core::catalog::fixtures::by_id("theta").unwrap(), &installed, &[InstallSource::Pacman]).is_none());
+    }
+
+    #[test]
+    fn prefers_managers_in_order_and_reads_revisions() {
+        let photo = datacrate360_launcher_core::catalog::fixtures::by_id("omni-agent").unwrap();
+        let mut installed = pkgs(InstallSource::Deb, parse_dpkg("omni-agent|installed|0.5.0-1\n"));
+        installed.extend(pkgs(InstallSource::Flatpak, parse_flatpak_list("com.datacrate360.omni-agent\t0.4.0\n")));
+        let hit = find(photo, &installed, &[InstallSource::Deb, InstallSource::Flatpak]).unwrap();
+        assert_eq!(hit.manager, InstallSource::Deb);
+        // 0.5.0-1 is the 0.5.0 release, not a pre-release of it.
+        assert_eq!(version_of(hit).unwrap().to_string(), "0.5.0");
+        assert_eq!(find(photo, &installed, &[InstallSource::Flatpak]).unwrap().version, "0.4.0");
+    }
+}

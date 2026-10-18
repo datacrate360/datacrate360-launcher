@@ -1,0 +1,27 @@
+DataCrate360 Launcher
+Copyright (c) 2026 DataCrate360 and the DataCrate360 Launcher contributors.
+Licensed under the MIT License or the Apache License, Version 2.0, at your option
+(LICENSE-MIT, LICENSE-APACHE).
+
+Derived from ArtCraft Launcher
+DataCrate360 Launcher is a modified version of ArtCraft Launcher
+(https://github.com/storytold/craft-launcher), Copyright (c) 2026 ArtCraft Team and the ArtCraft
+Launcher contributors, licensed under the MIT License or the Apache License, Version 2.0. The
+changes: renamed, rebranded and re-catalogued for the DataCrate360 tools; the ArtCraft release
+feed, social and community links and details-page pictures removed. The ArtCraft name, wordmark,
+logo and "A" mark are trademarks of the ArtCraft Team; none of them is included in this product,
+and this product is not affiliated with or endorsed by the ArtCraft Team.
+
+DataCrate360 brand
+The DataCrate360 name and logo (assets/brand/, and the app, tray and header icons rendered from it
+into assets/app-icon/) belong to DataCrate360 and are not covered by the MIT or Apache-2.0 license
+above. Forks and modified versions must replace them.
+
+Third-party material
+
+This product bundles third-party material under its own licenses, listed below. The per-file
+list (author, source, license) is in ATTRIBUTION.md.
+
+Inter font (assets/fonts/Inter-Variable.ttf) — SIL Open Font License 1.1. See assets/fonts/OFL-Inter.txt.
+Archivo font (assets/fonts/Archivo-Variable.ttf) — SIL Open Font License 1.1. See assets/fonts/OFL-Archivo.txt.
+Geist Mono font (assets/fonts/GeistMono-Variable.ttf) — SIL Open Font License 1.1. See assets/fonts/OFL-GeistMono.txt.
